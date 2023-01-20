@@ -1,0 +1,29 @@
+// common
+@import "common/_reset.scss";
+@import "common/_vars.scss";
+@import "common/_fonts.scss";
+
+body {
+	font-family: Montserrat;
+}
+
+.container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+}
+
+button {
+	background: rgb(56, 229, 235);
+	padding: 8px 24px;
+	font-size: 1rem;
+	border-radius: 2px;
+	color: rgb(12, 27, 46);
+	font-weight: bolder;
+}
+
+button:hover {
+	background: rgb(99, 236, 240);
+}
