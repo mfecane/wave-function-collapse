@@ -1,7 +1,7 @@
 import { assertBoolean } from '../utils/utils'
 import { MeshInstance } from './cube-item-instance'
 import { CubeAdjacency } from './cube-collapser'
-import { InstanceSet, Solver } from './solver'
+import { Solver } from './solver'
 import { templates } from './templates'
 
 type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverAgain =
@@ -17,7 +17,7 @@ type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverA
 // 	public copy(): CubeGridState {}
 // }
 
-export class CubeGrid implements InstanceSet {
+export class CubeGrid {
 	public MAX_HORIZONTAL = 11
 	public MAX_VERTICAL = 3
 

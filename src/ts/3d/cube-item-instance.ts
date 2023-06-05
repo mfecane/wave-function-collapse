@@ -1,9 +1,8 @@
 import { Transform3d } from '../utils/maths'
 import { assertBoolean, randomElement } from '../utils/utils'
-import { Instance } from './solver'
 import { templates } from './templates'
 
-export class MeshInstance implements Instance {
+export class MeshInstance {
 	public x: number = 0
 	public y: number = 0
 	public z: number = 0

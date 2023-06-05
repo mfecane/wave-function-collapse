@@ -1,33 +1,7 @@
 import { pause, randomElement } from '../utils/utils.js'
+import { CubeGrid } from './cube-grid.js'
+import { MeshInstance } from './cube-item-instance.js'
 import { templates } from './templates.js'
-
-export interface WaveState {}
-
-export type AdjacencyInfo = string
-
-export interface Instance {
-	enthropy: number
-	mask: Int8Array
-	dead: boolean
-
-	replaceStates(newStates: Int8Array): void
-
-	collapse(): void
-
-	collapseTo(i: number): void
-
-	countStates(): number
-}
-
-export interface InstanceSet {
-	eachElement(callback: (el: Instance) => void): void
-
-	getElementsAdjacentTo(
-		reference: Instance
-	): [element: Instance, adjacencyInfo: AdjacencyInfo][]
-
-	print(): void
-}
 
 // interface HistoryItem {
 // 	instance: Instance
@@ -37,12 +11,12 @@ export interface InstanceSet {
 
 export class Solver extends EventTarget {
 	public iterations = 0
-	private q: Instance[] = []
+	private q: MeshInstance[] = []
 	public static checks = 0
 
 	history = []
 
-	public constructor(private set: InstanceSet) {
+	public constructor(private set: CubeGrid) {
 		super()
 	}
 
@@ -50,7 +24,7 @@ export class Solver extends EventTarget {
 		// propagate border conditions
 		// this.propagate()
 
-		let instance: Instance
+		let instance: MeshInstance
 		while ((instance = this.getNextElement())) {
 			this.collapseElement(instance)
 			this.propagate()
@@ -59,7 +33,7 @@ export class Solver extends EventTarget {
 	}
 
 	private propagate() {
-		let element: Instance
+		let element: MeshInstance
 		let guard = 0
 
 		while ((element = this.q.shift())) {
@@ -70,7 +44,7 @@ export class Solver extends EventTarget {
 		}
 	}
 
-	private propagateElement(element: Instance) {
+	private propagateElement(element: MeshInstance) {
 		const adjacents = this.set.getElementsAdjacentTo(element)
 		adjacents.forEach(([target, adjacencyInfo]) => {
 			this.filterTargetStates(element, target, adjacencyInfo)
@@ -82,10 +56,11 @@ export class Solver extends EventTarget {
 	}
 
 	private filterTargetStates(
-		source: Instance,
-		target: Instance,
-		adjacencyInfo: AdjacencyInfo
+		source: MeshInstance,
+		target: MeshInstance,
+		adjacencyInfo: string
 	) {
+		// fail condition
 		if (target.enthropy <= 1) {
 			return
 		}
@@ -121,7 +96,7 @@ export class Solver extends EventTarget {
 		target.replaceStates(newStates)
 	}
 
-	public pushToQ(instance: Instance): void {
+	public pushToQ(instance: MeshInstance): void {
 		// console.groupCollapsed('pushToQ instance', instance)
 		// console.trace()
 		// console.groupEnd()
@@ -132,9 +107,9 @@ export class Solver extends EventTarget {
 		this.q.push(instance)
 	}
 
-	private getNextElement(): Instance | null {
+	private getNextElement(): MeshInstance | null {
 		let min: number = Infinity
-		let elements: Instance[] = []
+		let elements: MeshInstance[] = []
 
 		this.set.eachElement((el) => {
 			if (el.dead || el.enthropy === 1) {
@@ -153,10 +128,10 @@ export class Solver extends EventTarget {
 			return null
 		}
 
-		return randomElement<Instance>(elements)
+		return randomElement<MeshInstance>(elements)
 	}
 
-	private collapseElement(element: Instance) {
+	private collapseElement(element: MeshInstance) {
 		element.collapse()
 		const event = new Event('element_collapsed', { bubbles: true })
 		this.dispatchEvent(event)
