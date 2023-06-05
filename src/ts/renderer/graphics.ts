@@ -44,11 +44,6 @@ export function setup() {
 
 	controls = new OrbitControls(camera, renderer.domElement)
 
-	// const loader = new OBJLoader()
-	// loader.load('assets/meshes/corner.obj', (object) => {
-	// 	scene.add(object)
-	// })
-
 	animate()
 }
 

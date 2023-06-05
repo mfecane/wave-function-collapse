@@ -1,7 +1,6 @@
-import { ConstraintsChecker, Solver } from './solver'
+import { Solver } from './solver'
 import { CubeRenderer } from './cube-renderer'
 import { CubeGrid } from './cube-grid'
-import { MeshTemplate } from './templates'
 
 export enum CubeAdjacency {
 	px = 'px',
@@ -12,32 +11,23 @@ export enum CubeAdjacency {
 	nz = 'nz',
 }
 
-class CubeConstraintsChecker implements ConstraintsChecker {
-	public static iterations = 0
-
-	checkConstraints(
-		reference: MeshTemplate,
-		element: MeshTemplate,
-		adjacencyInfo: CubeAdjacency
-	): boolean {
-		CubeConstraintsChecker.iterations++
-		return reference[adjacencyInfo][element.index] === 1
-	}
-}
-
 export async function build() {
 	const set = new CubeGrid()
-	const solver = new Solver(set, new CubeConstraintsChecker())
+	const solver = new Solver(set)
 	const renderer = new CubeRenderer()
 	solver.addEventListener('element_collapsed', () => {
 		renderer.tryRender(set)
 	})
 	set.fill(solver)
+
+	const cl = set.cloneState()
+	console.log('cloned state', cl)
+
 	await solver.run()
 	set.printFinishedSlice(1)
 	if (!set.validataSolved()) {
 		throw 'validataion not passed'
 	}
-	console.log('iterations', CubeConstraintsChecker.iterations)
+	console.log('checks', Solver.checks)
 	renderer.tryRender(set)
 }

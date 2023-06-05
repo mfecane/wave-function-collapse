@@ -1,11 +1,21 @@
 import { assertBoolean } from '../utils/utils'
 import { MeshInstance } from './cube-item-instance'
-import { CubeAdjacency } from './cube-set'
+import { CubeAdjacency } from './cube-collapser'
 import { InstanceSet, Solver } from './solver'
-import { buildTemplates } from './templates'
+import { templates } from './templates'
 
 type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverAgain =
 	[element: MeshInstance, adjacencyInfo: CubeAdjacency]
+
+// export class CubeGridState {
+// 	public instances: (MeshInstance | null)[][][] = []
+
+// 	public setAt(x, y, z, instance: MeshInstance) {}
+
+// 	public getAt(x, y, z)
+
+// 	public copy(): CubeGridState {}
+// }
 
 export class CubeGrid implements InstanceSet {
 	public MAX_HORIZONTAL = 11
@@ -16,15 +26,12 @@ export class CubeGrid implements InstanceSet {
 	public constructor() {}
 
 	public fill(solver: Solver) {
-		const templates = buildTemplates()
-		console.log('templates', templates)
-
 		for (let i = 0; i < this.MAX_HORIZONTAL; ++i) {
 			this.instances[i] = []
 			for (let j = 0; j < this.MAX_HORIZONTAL; ++j) {
 				this.instances[i][j] = []
 				for (let k = 0; k < this.MAX_VERTICAL; ++k) {
-					const instance = new MeshInstance(templates)
+					const instance = new MeshInstance()
 					instance.x = i
 					instance.y = j
 					instance.z = k
@@ -66,7 +73,7 @@ export class CubeGrid implements InstanceSet {
 			}
 		}
 
-		this.print()
+		// this.print()
 	}
 
 	public eachElement(callback: (instance: MeshInstance) => void) {
@@ -105,15 +112,15 @@ export class CubeGrid implements InstanceSet {
 		for (let i = 0; i < this.instances.length; ++i) {
 			for (let j = 0; j < this.instances[i].length; ++j) {
 				const instance = this.instances[i][j][z]
-				assertBoolean(instance.states.length <= 1)
-				result += `\t${instance.states[0]?.name ?? 'dead'}`
+				assertBoolean(instance.enthropy <= 1)
+				result += `\t${templates[instance.tryGetOnlyState()]?.name ?? 'dead'}`
 			}
 			result += '\n'
 		}
 		console.log(result)
 	}
 
-	public getElementsAdjasentTo(
+	public getElementsAdjacentTo(
 		reference: MeshInstance
 	): AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverAgain[] {
 		function pushIf(
@@ -172,12 +179,20 @@ export class CubeGrid implements InstanceSet {
 			for (let y = 0; y < this.instances[x].length; ++y) {
 				for (let z = 0; z < this.instances[x][y].length; ++z) {
 					const instance = this.instances[x][y][z]
-					if (instance.states.length > 1) {
+					if (instance.enthropy > 1) {
 						return false
 					}
 				}
 			}
 		}
 		return true
+	}
+
+	public cloneState(): MeshInstance[][][] {
+		return this.instances.map((el1) => el1.map((el2) => [...el2]))
+	}
+
+	public replaceState(instances: MeshInstance[][][]) {
+		this.instances = instances
 	}
 }

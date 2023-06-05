@@ -25,7 +25,8 @@ export interface MeshTemplate {
 	nz: Int8Array
 }
 
-const connectionMap = buildConnections()
+const connectionMap = new Map<string, boolean>()
+export let templates: MeshTemplate[] = []
 
 function tryPushConnection(allConnecitons: string[], id: string) {
 	if (allConnecitons.includes(id)) {
@@ -34,9 +35,7 @@ function tryPushConnection(allConnecitons: string[], id: string) {
 	allConnecitons.push(id)
 }
 
-function buildConnections(): Map<string, boolean> {
-	const connectionMap = new Map<string, boolean>()
-
+function buildConnections(): void {
 	const allConnecitons: string[] = []
 	templatesData.forEach((data) => {
 		tryPushConnection(allConnecitons, data.nx)
@@ -58,10 +57,9 @@ function buildConnections(): Map<string, boolean> {
 			connectionMap.set(id + '_' + id, true)
 		}
 	})
-	return connectionMap
 }
 
-export function buildTemplates() {
+function buildTemplates() {
 	const localTemplateData: SourceData[] = templatesData.reduce(
 		(arr: SourceData[], templateData: SourceData) => {
 			tryPushTemplate(arr, rotateTemplate(templateData, 0))
@@ -122,7 +120,7 @@ export function buildTemplates() {
 		}
 		newTemplates.push(newTemplate)
 	}
-	return newTemplates
+	templates = newTemplates
 }
 
 function tryPushTemplate(arr: SourceData[], el: SourceData) {
@@ -192,3 +190,6 @@ function rotateTemplate(template: SourceData, angle: number): SourceData {
 	}
 	return result
 }
+
+buildConnections()
+buildTemplates()

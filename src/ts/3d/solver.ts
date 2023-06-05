@@ -1,4 +1,5 @@
 import { pause, randomElement } from '../utils/utils.js'
+import { templates } from './templates.js'
 
 export interface WaveState {}
 
@@ -6,42 +7,42 @@ export type AdjacencyInfo = string
 
 export interface Instance {
 	enthropy: number
-	states: WaveState[]
+	mask: Int8Array
 	dead: boolean
 
-	replaceStates(newStates: WaveState): void
+	replaceStates(newStates: Int8Array): void
 
 	collapse(): void
 
 	collapseTo(i: number): void
+
+	countStates(): number
 }
 
 export interface InstanceSet {
 	eachElement(callback: (el: Instance) => void): void
 
-	getElementsAdjasentTo(
+	getElementsAdjacentTo(
 		reference: Instance
 	): [element: Instance, adjacencyInfo: AdjacencyInfo][]
 
 	print(): void
 }
 
-export interface ConstraintsChecker {
-	checkConstraints(
-		state1: WaveState,
-		state2: WaveState,
-		adjacencyInfo: AdjacencyInfo
-	): boolean
-}
+// interface HistoryItem {
+// 	instance: Instance
+// 	triedStates: number[]
+// 	state: CubeGridState
+// }
 
 export class Solver extends EventTarget {
 	public iterations = 0
 	private q: Instance[] = []
+	public static checks = 0
 
-	public constructor(
-		private set: InstanceSet,
-		private constraintsChecker: ConstraintsChecker
-	) {
+	history = []
+
+	public constructor(private set: InstanceSet) {
 		super()
 	}
 
@@ -70,10 +71,14 @@ export class Solver extends EventTarget {
 	}
 
 	private propagateElement(element: Instance) {
-		const adjacents = this.set.getElementsAdjasentTo(element)
+		const adjacents = this.set.getElementsAdjacentTo(element)
 		adjacents.forEach(([target, adjacencyInfo]) => {
 			this.filterTargetStates(element, target, adjacencyInfo)
 		})
+	}
+
+	private countOnes(array: Int8Array): number {
+		return array.reduce((acc, cur) => acc + cur, 0)
 	}
 
 	private filterTargetStates(
@@ -81,39 +86,38 @@ export class Solver extends EventTarget {
 		target: Instance,
 		adjacencyInfo: AdjacencyInfo
 	) {
-		if (target.states.length <= 1) {
+		if (target.enthropy <= 1) {
 			return
 		}
 
-		const newStates: WaveState[] = []
+		const newStates = new Int8Array(templates.length)
 
-		for (let targetState of target.states) {
-			// if (targetState.mesh != 'void') {
-			// 	debugger
-			// }
-			let result = false
-			for (let sourceState of source.states) {
-				// at least one of source templates fits target template
-				// we keep that target template on source
-				result ||= this.constraintsChecker.checkConstraints(
-					sourceState,
-					targetState,
-					adjacencyInfo
-				)
-			}
-			if (result) {
-				newStates.push(targetState)
+		// target
+		for (let i = 0; i < templates.length; i++) {
+			if (target.mask[i] === 1) {
+				let result = false
+				// source
+				for (let j = 0; j < templates.length; ++j) {
+					// at least one of source templates fits target template
+					// we keep that target template on source
+					if (source.mask[j] === 1) {
+						result ||= templates[j][adjacencyInfo][i] === 1
+					}
+					Solver.checks++
+				}
+				if (result) {
+					newStates[i] = 1
+				}
 			}
 		}
 
-		if (target.states.length !== newStates.length) {
+		if (this.countOnes(target.mask) !== this.countOnes(newStates)) {
 			// further propagation required
-			const adjacents = this.set.getElementsAdjasentTo(target)
+			const adjacents = this.set.getElementsAdjacentTo(target)
 			adjacents.forEach(([target, adjacencyInfo]) => {
 				this.pushToQ(target)
 			})
 		}
-
 		target.replaceStates(newStates)
 	}
 

@@ -1,8 +1,10 @@
 import { Mesh, Group, MeshLambertMaterial } from 'three'
+//@ts-ignore
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js'
 import { scene } from '../renderer/graphics'
 import { MeshInstance } from './cube-item-instance'
 import { CubeGrid } from './cube-grid'
+import { templates } from './templates'
 
 export class CubeRenderer {
 	private readonly TILE_SIZE = 2
@@ -33,11 +35,7 @@ export class CubeRenderer {
 	}
 
 	private async tryRenderELement(set: CubeGrid, instance: MeshInstance) {
-		if (
-			instance.states.length === 0 ||
-			instance.dead ||
-			instance.states.length > 1
-		) {
+		if (instance.enthropy !== 1 || instance.dead) {
 			return
 		}
 		await this.addMesh(set, instance)
@@ -56,7 +54,7 @@ export class CubeRenderer {
 	}
 
 	private async addMesh(set: CubeGrid, instance: MeshInstance) {
-		const state = instance.states[0]
+		const state = templates[instance.tryGetOnlyState()]
 		if (!state || state.mesh === 'void') {
 			return
 		}
