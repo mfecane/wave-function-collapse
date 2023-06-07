@@ -7,5 +7,9 @@ to play with the solver
 ## TODO
 
 - make abstract algorythm
-- solve maximum callstack
-- cleanup build process with three.js
+  - not achievable for now
+
+## Plan
+
+- Tile editor
+- Change tile and propagate

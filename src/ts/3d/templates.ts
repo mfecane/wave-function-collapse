@@ -1,8 +1,12 @@
+import { TemplateMask } from '../template-mask'
 import { templatesData } from './data/dataset'
+
+// TODO fix circular dependency
 
 export interface SourceData {
 	mesh: string
-	name: string
+	id: string
+	rotate?: boolean
 	rotation?: number
 	px: string
 	nx: string
@@ -14,15 +18,15 @@ export interface SourceData {
 
 export interface MeshTemplate {
 	mesh: string
-	name: string
+	id: string
 	rotation: number
 	index: number
-	px: Int8Array
-	nx: Int8Array
-	py: Int8Array
-	ny: Int8Array
-	pz: Int8Array
-	nz: Int8Array
+	px: TemplateMask
+	nx: TemplateMask
+	py: TemplateMask
+	ny: TemplateMask
+	pz: TemplateMask
+	nz: TemplateMask
 }
 
 const connectionMap = new Map<string, boolean>()
@@ -73,49 +77,44 @@ function buildTemplates() {
 
 	const newTemplates: MeshTemplate[] = []
 	const templatesCount = localTemplateData.length
+	templates.length = templatesCount
 	for (let i = 0; i < localTemplateData.length; ++i) {
 		const newTemplate: MeshTemplate = {
 			mesh: localTemplateData[i].mesh,
-			name: localTemplateData[i].name,
+			id: localTemplateData[i].id,
 			rotation: localTemplateData[i].rotation,
 			index: i,
-			px: new Int8Array(templatesCount),
-			nx: new Int8Array(templatesCount),
-			py: new Int8Array(templatesCount),
-			ny: new Int8Array(templatesCount),
-			pz: new Int8Array(templatesCount),
-			nz: new Int8Array(templatesCount),
+			px: new TemplateMask(),
+			nx: new TemplateMask(),
+			py: new TemplateMask(),
+			ny: new TemplateMask(),
+			pz: new TemplateMask(),
+			nz: new TemplateMask(),
 		}
 		for (let j = 0; j < templatesCount; ++j) {
-			newTemplate.px[j] = checkTemplate(
-				localTemplateData[i],
-				localTemplateData[j],
-				'px'
+			newTemplate.px.setAt(
+				j,
+				checkTemplate(localTemplateData[i], localTemplateData[j], 'px')
 			)
-			newTemplate.nx[j] = checkTemplate(
-				localTemplateData[i],
-				localTemplateData[j],
-				'nx'
+			newTemplate.nx.setAt(
+				j,
+				checkTemplate(localTemplateData[i], localTemplateData[j], 'nx')
 			)
-			newTemplate.py[j] = checkTemplate(
-				localTemplateData[i],
-				localTemplateData[j],
-				'py'
+			newTemplate.py.setAt(
+				j,
+				checkTemplate(localTemplateData[i], localTemplateData[j], 'py')
 			)
-			newTemplate.ny[j] = checkTemplate(
-				localTemplateData[i],
-				localTemplateData[j],
-				'ny'
+			newTemplate.ny.setAt(
+				j,
+				checkTemplate(localTemplateData[i], localTemplateData[j], 'ny')
 			)
-			newTemplate.pz[j] = checkTemplate(
-				localTemplateData[i],
-				localTemplateData[j],
-				'pz'
+			newTemplate.pz.setAt(
+				j,
+				checkTemplate(localTemplateData[i], localTemplateData[j], 'pz')
 			)
-			newTemplate.nz[j] = checkTemplate(
-				localTemplateData[i],
-				localTemplateData[j],
-				'nz'
+			newTemplate.nz.setAt(
+				j,
+				checkTemplate(localTemplateData[i], localTemplateData[j], 'nz')
 			)
 		}
 		newTemplates.push(newTemplate)

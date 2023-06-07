@@ -1,9 +1,19 @@
 import { SourceData } from '../templates'
 
+export enum CubeAdjacency {
+	px = 'px',
+	nx = 'nx',
+	py = 'py',
+	ny = 'ny',
+	pz = 'pz',
+	nz = 'nz',
+}
+
 export const templatesData: SourceData[] = [
 	{
 		mesh: 'void',
-		name: 'void',
+		id: 'void',
+		rotate: false,
 		px: 'void',
 		nx: 'void',
 		py: 'void',
@@ -13,7 +23,8 @@ export const templatesData: SourceData[] = [
 	},
 	{
 		mesh: 'void',
-		name: 'earth',
+		id: 'earth',
+		rotate: false,
 		px: 'void',
 		nx: 'void',
 		py: 'void',
@@ -22,8 +33,19 @@ export const templatesData: SourceData[] = [
 		nz: 'void',
 	},
 	{
+		mesh: 'void',
+		id: 'void_on_earth',
+		rotate: false,
+		px: 'void',
+		nx: 'void',
+		py: 'void',
+		ny: 'void',
+		pz: 'void',
+		nz: 'earth',
+	},
+	{
 		mesh: 'assets/meshes/corner.obj',
-		name: 'corner',
+		id: 'corner',
 		px: 'wall_r',
 		nx: 'void',
 		py: 'void',
@@ -33,7 +55,7 @@ export const templatesData: SourceData[] = [
 	},
 	{
 		mesh: 'assets/meshes/wall.obj',
-		name: 'wall',
+		id: 'wall',
 		px: 'wall_r',
 		nx: 'wall_l',
 		py: 'void',

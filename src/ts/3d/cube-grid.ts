@@ -1,6 +1,6 @@
 import { assertBoolean } from '../utils/utils'
 import { MeshInstance } from './cube-item-instance'
-import { CubeAdjacency } from './cube-collapser'
+import { CubeAdjacency } from './data/dataset'
 import { Solver } from './solver'
 import { templates } from './templates'
 
@@ -18,7 +18,7 @@ type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverA
 // }
 
 export class CubeGrid {
-	public MAX_HORIZONTAL = 11
+	public MAX_HORIZONTAL = 31
 	public MAX_VERTICAL = 3
 
 	public instances: (MeshInstance | null)[][][] = []
@@ -35,45 +35,36 @@ export class CubeGrid {
 					instance.x = i
 					instance.y = j
 					instance.z = k
+
+					// build boundary positions
+					// floor
+					if (k === 0) {
+						instance.collapseToId('earth')
+						instance.dirty = true
+					}
+
+					// walls
+					if (
+						k === 1 &&
+						(i === 0 ||
+							j === 0 ||
+							i === this.MAX_HORIZONTAL - 1 ||
+							j === this.MAX_HORIZONTAL - 1)
+					) {
+						instance.collapseToId('void_on_earth')
+						instance.dirty = true
+					}
+
+					// ceil
+					if (k === this.MAX_VERTICAL - 1) {
+						instance.collapseToId('void')
+						instance.dirty = true
+					}
+
 					this.instances[i][j][k] = instance
 				}
 			}
 		}
-		// build boundary positions
-
-		// floor
-		for (let i = 0; i < this.instances.length; ++i) {
-			for (let j = 0; j < this.instances[i].length; ++j) {
-				this.instances[i][j][0].collapseTo(1)
-				solver.pushToQ(this.instances[i][j][0])
-			}
-		}
-
-		// top
-		for (let i = 0; i < this.instances.length; ++i) {
-			for (let j = 0; j < this.instances[i].length; ++j) {
-				this.instances[i][j][this.MAX_VERTICAL - 1].collapseTo(0)
-				solver.pushToQ(this.instances[i][j][0])
-			}
-		}
-
-		// sides
-		for (let i = 0; i < this.instances.length; ++i) {
-			for (let j = 0; j < this.instances[i].length; ++j) {
-				for (let k = 1; k < this.MAX_VERTICAL; ++k) {
-					if (
-						i === 0 ||
-						j === 0 ||
-						i === this.MAX_HORIZONTAL - 1 ||
-						j === this.MAX_HORIZONTAL - 1
-					) {
-						this.instances[i][j][k].collapseTo(0)
-					}
-				}
-			}
-		}
-
-		// this.print()
 	}
 
 	public eachElement(callback: (instance: MeshInstance) => void) {
@@ -113,7 +104,7 @@ export class CubeGrid {
 			for (let j = 0; j < this.instances[i].length; ++j) {
 				const instance = this.instances[i][j][z]
 				assertBoolean(instance.enthropy <= 1)
-				result += `\t${templates[instance.tryGetOnlyState()]?.name ?? 'dead'}`
+				result += `\t${templates[instance.tryGetOnlyState()]?.id ?? 'dead'}`
 			}
 			result += '\n'
 		}
@@ -163,11 +154,25 @@ export class CubeGrid {
 		return result
 	}
 
-	private tryGetElementAt(x: number, y: number, z: number) {
+	public tryGetElementAt(x: number, y: number, z: number) {
 		if (x >= 0 && x < this.instances.length) {
 			if (y >= 0 && y < this.instances[x].length) {
 				if (z >= 0 && z < this.instances[y].length) {
 					return this.instances[x][y][z]
+				}
+			}
+		}
+		return null
+	}
+
+	public getNextDirtyElement() {
+		for (let x = 0; x < this.instances.length; ++x) {
+			for (let y = 0; y < this.instances[x].length; ++y) {
+				for (let z = 0; z < this.instances[x][y].length; ++z) {
+					const instance = this.instances[x][y][z]
+					if (instance.dirty) {
+						return instance
+					}
 				}
 			}
 		}
@@ -189,10 +194,14 @@ export class CubeGrid {
 	}
 
 	public cloneState(): MeshInstance[][][] {
-		return this.instances.map((el1) => el1.map((el2) => [...el2]))
+		return this.instances.map((el1) =>
+			el1.map((el2) => el2.map((el3) => el3.clone()))
+		)
 	}
 
 	public replaceState(instances: MeshInstance[][][]) {
-		this.instances = instances
+		this.instances = instances.map((el1) =>
+			el1.map((el2) => el2.map((el3) => el3.clone()))
+		)
 	}
 }

@@ -1,4 +1,4 @@
-export function randomElement<T>(arr: Array<T>) {
+export function randomElement<T>(arr: Array<T>): T | undefined {
 	return arr[Math.floor(Math.random() * arr.length)]
 }
 
@@ -12,7 +12,6 @@ export function assertBoolean(
 	message: string = 'Assertion failed'
 ) {
 	if (!value) {
-		debugger
 		throw message
 	}
 }

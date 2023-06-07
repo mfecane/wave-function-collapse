@@ -1,4 +1,4 @@
-import { Transform3d } from '../utils/maths'
+import { TemplateMask } from '../template-mask'
 import { assertBoolean, randomElement } from '../utils/utils'
 import { templates } from './templates'
 
@@ -8,68 +8,84 @@ export class MeshInstance {
 	public z: number = 0
 
 	public dead = false
-	public transform: Transform3d = new Transform3d()
+	public dirty = false
 
 	public enthropy: number = 0
-	public mask: Int8Array
+	public mask: TemplateMask
 
 	constructor() {
-		this.mask = new Int8Array(templates.length)
-		this.mask.fill(1)
-		this.enthropy = this.countOnes(this.mask)
+		this.mask = new TemplateMask()
+		this.mask.fillOnes()
+		this.enthropy = this.mask.countOnes()
 	}
 
 	private getNonZeroIndices(): number[] {
-		return this.mask.reduce((arr, el, idx) => {
-			if (el === 1) {
-				arr.push(idx)
-			}
-			return arr
-		}, [])
+		return this.mask.getNonZeroIndices()
 	}
 
 	public collapse() {
 		const indices = this.getNonZeroIndices()
-		const randomIndex = randomElement(indices)
+		const randomIndex = randomElement(indices) ?? 0
 		this.collapseTo(randomIndex)
 	}
 
-	private countOnes(array: Int8Array): number {
-		return array.reduce((acc, cur) => acc + cur, 0)
-	}
-
-	public collapseTo(index: number) {
+	public collapseTo(index: number): void {
 		if (this.dead) {
 			return
 		}
 		assertBoolean(index < templates.length)
-		this.mask = new Int8Array(templates.length)
-		this.mask.fill(0)
-		this.mask[index] = 1
-		this.enthropy = this.countOnes(this.mask)
+		assertBoolean(this.mask.getAt(index) === 1)
+
+		this.mask = new TemplateMask()
+		this.mask.setAt(index, 1)
+		this.enthropy = this.mask.countOnes()
 	}
 
-	public replaceStates(newStates: Int8Array) {
-		this.mask = newStates
-		this.enthropy = this.countOnes(this.mask)
+	public collapseToId(id: string): void {
+		const index = templates.findIndex((el) => el.id === id)
+		this.collapseTo(index)
+	}
+
+	private die(): void {
+		this.dead = true
+	}
+
+	public tryGetOnlyState(): number {
+		if (this.enthropy != 1) {
+			throw 'attempt to get only state of element with enthropy > 2'
+		}
+		const index = this.mask.getNonZeroIndices()[0]
+		return index
+	}
+
+	public countStates(): number {
+		return this.mask.countOnes()
+	}
+
+	public clone() {
+		const clone = new MeshInstance()
+		clone.mask = this.mask.clone()
+		clone.enthropy = this.mask.countOnes()
+		clone.dead = this.dead
+		clone.x = this.x
+		clone.y = this.y
+		clone.z = this.z
+		return clone
+	}
+
+	public updateEnthropy() {
+		this.enthropy = this.mask.countOnes()
 		if (this.enthropy < 1) {
 			this.die()
 		}
 	}
 
-	private die() {
-		this.dead = true
-	}
-
-	public tryGetOnlyState() {
-		if (this.enthropy != this.countOnes(this.mask)) {
-			throw 'attempt to get only state of element with enthropy > 2'
-		}
-		const index = this.mask.findIndex((el) => el === 1)
-		return index
-	}
-
-	public countStates(): number {
-		return this.countOnes(this.mask)
+	public print(): string {
+		let str = `[${this.x.toString().padStart(2, ' ')}, ${this.y
+			.toString()
+			.padStart(2, ' ')}, ${this.z.toString().padStart(2, ' ')}] `
+		str += `[${this.mask.print()}]`
+		str += ` entr: ${this.enthropy}`
+		return str
 	}
 }

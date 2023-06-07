@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+//@ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls'
 
 let renderer: THREE.WebGLRenderer
@@ -36,9 +37,9 @@ export function setup() {
 	pointLight1.lookAt(0, 0, 0)
 	scene.add(pointLight1)
 
-	camera.position.x = 10
-	camera.position.y = 20
-	camera.position.z = 10
+	camera.position.x = 20
+	camera.position.y = 25
+	camera.position.z = 20
 
 	camera.lookAt(new THREE.Vector3(0, 0, 0))
 
