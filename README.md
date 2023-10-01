@@ -6,10 +6,10 @@ to play with the solver
 
 ## TODO
 
-- make abstract algorythm
-  - not achievable for now
+-   make abstract algorythm
+    -   not achievable for now
+    -   add void cell
 
 ## Plan
 
-- Tile editor
-- Change tile and propagate
+-   Change tile and propagate

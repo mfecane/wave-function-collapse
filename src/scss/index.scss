@@ -4,26 +4,20 @@
 @import "common/_fonts.scss";
 
 body {
-	font-family: Montserrat;
+	font-family: Poppins;
+	background: var(--dark-bg);
 }
 
-.container {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100vw;
-	height: 100vh;
+#app {
+	min-height: 100vh;
+	height: 100%;
 }
 
-button {
-	background: rgb(56, 229, 235);
-	padding: 8px 24px;
-	font-size: 1rem;
+.btn {
 	border-radius: 2px;
-	color: rgb(12, 27, 46);
-	font-weight: bolder;
-}
-
-button:hover {
-	background: rgb(99, 236, 240);
+	background: var(--accent);
+	min-width: 120px;
+	padding: 8px 20px;
+	text-align: center;
+	color: white;
 }

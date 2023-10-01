@@ -3,28 +3,29 @@ export function randomElement<T>(arr: Array<T>): T | undefined {
 }
 
 export function assertEmpty<T>(variable: T | null | undefined): T {
-	if (!variable) throw 'Assertion failed'
+	if (!variable) {
+		console.groupCollapsed('assertEmpty')
+		console.trace()
+		console.groupEnd()
+		throw 'Assertion failed'
+	}
 	return variable
 }
 
-export function assertBoolean(
-	value: boolean,
-	message: string = 'Assertion failed'
-) {
+export function assertBoolean(value: boolean, message: string = 'Assertion failed') {
 	if (!value) {
+		console.groupCollapsed('assertBoolean')
+		console.trace()
+		console.groupEnd()
 		throw message
 	}
 }
 
-export function assertNonZero(
-	variable: number,
-	message: string = 'Assertion failed'
-): number {
+export function assertNonZero(variable: number, message: string = 'Assertion failed'): number {
 	if (variable === 0) {
-		console.groupCollapsed()
+		console.groupCollapsed('assertNonZero')
 		console.trace()
 		console.groupEnd()
-		debugger
 		throw message
 	}
 	return variable
