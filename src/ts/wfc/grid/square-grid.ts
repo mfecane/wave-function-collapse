@@ -9,7 +9,7 @@ type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverA
 
 export class SquareGrid {
 	public static readonly MAX_HORIZONTAL = 15
-	public static readonly MAX_VERTICAL = 6
+	public static readonly MAX_VERTICAL = 9
 
 	public instances: (SquareGridInstance | null)[][][] = []
 

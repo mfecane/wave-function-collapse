@@ -11,7 +11,7 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 export class Graphics extends EventTarget {
-	private static readonly DEBUG = true
+	private static readonly DEBUG = false
 
 	public readonly scene: Scene
 	public readonly camera: Camera

@@ -31,6 +31,6 @@ export function assertNonZero(variable: number, message: string = 'Assertion fai
 	return variable
 }
 
-export async function pause(time: number) {
+export async function pause(time: number = 0) {
 	return await new Promise((resolve) => setTimeout(resolve, time))
 }

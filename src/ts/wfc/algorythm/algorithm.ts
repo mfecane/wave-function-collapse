@@ -1,9 +1,11 @@
-import { TemplateMask } from './template-mask.js'
-import { pause, randomElement } from '../utils/utils.js'
+import { TemplateMask } from '../template-mask.js'
+import { pause } from '../../utils/utils.js'
 import { modelParser } from '@/ts/wfc/model-parser.js'
 import { SquareGrid } from '@/ts/wfc/grid/square-grid.js'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance.js'
 import { Vector3 } from 'three'
+import { ElementSelectorStrategy } from '@/ts/wfc/algorythm/ElementSelectorStrategy.js'
+import { debounce, throttle } from 'lodash'
 
 interface HistoryItem {
 	instancePos: {
@@ -21,7 +23,7 @@ export interface SolverEventPayload {
 	set: SquareGrid
 }
 
-export class Solver extends EventTarget {
+export class Algorythm extends EventTarget {
 	private static readonly GUARD_LIMIT = 10000
 
 	public iterations = 0
@@ -30,8 +32,14 @@ export class Solver extends EventTarget {
 
 	private history: HistoryItem[] = []
 
-	public constructor(private readonly set: SquareGrid) {
+	private notify: () => void
+
+	public constructor(
+		private readonly set: SquareGrid,
+		private readonly strategy: ElementSelectorStrategy
+	) {
 		super()
+		this.notify = throttle(this._notify.bind(this), 50)
 	}
 
 	public async run() {
@@ -62,7 +70,7 @@ export class Solver extends EventTarget {
 				break
 			}
 
-			if (guard++ > Solver.GUARD_LIMIT) {
+			if (guard++ > Algorythm.GUARD_LIMIT) {
 				throw 'Guard overflow'
 			}
 
@@ -90,9 +98,8 @@ export class Solver extends EventTarget {
 
 				instance.collapseTo(index)
 				instance.dirty = true
-				this.notify(currentHistoryItem)
-				await pause(10)
-
+				this.notify()
+				await pause()
 				this.propagate()
 			} catch (e) {
 				// console.log('backtrack ', e)
@@ -106,6 +113,8 @@ export class Solver extends EventTarget {
 				console.log('yay!!')
 				const event = new Event('solving_finished', { bubbles: true })
 				this.dispatchEvent(event)
+
+				this._notify()
 				break
 			}
 			// console.log('getNextElement', inst2.print())
@@ -122,7 +131,9 @@ export class Solver extends EventTarget {
 		}
 	}
 
-	private notify(currentHistoryItem: HistoryItem) {
+	private _notify() {
+		console.log('_notify')
+		const currentHistoryItem = this.history[this.history.length - 1]
 		const event = new CustomEvent<SolverEventPayload>('element_collapsed', {
 			detail: {
 				current: new Vector3(
@@ -198,7 +209,7 @@ export class Solver extends EventTarget {
 		let element: SquareGridInstance
 		let guard = 0
 		while ((element = this.set.getNextDirtyElement())) {
-			if (guard++ > Solver.GUARD_LIMIT) {
+			if (guard++ > Algorythm.GUARD_LIMIT) {
 				throw 'Guard overflow'
 			}
 			this.propagateElement(element)
@@ -233,7 +244,7 @@ export class Solver extends EventTarget {
 						// TODO please keep in mind adjacencyInfo
 						result ||= sourceTemplateInfo.getAt(i) === 1
 					}
-					Solver.checks++
+					Algorythm.checks++
 				}
 			}
 			if (!result) {
@@ -255,31 +266,7 @@ export class Solver extends EventTarget {
 	}
 
 	private getNextElement(): SquareGridInstance | null {
-		let min: number = Infinity
-		let elements: SquareGridInstance[] = []
-
-		this.set.eachElement((el) => {
-			if (el.dead || el.enthropy === 1) {
-				return
-			}
-			if (el.enthropy < min) {
-				min = el.enthropy
-				elements = [el]
-			}
-			if (el.enthropy === min) {
-				elements.push(el)
-			}
-		})
-
-		if (elements.length < 1) {
-			return null
-		}
-
-		const rand = randomElement<SquareGridInstance>(elements)
-		if (rand.z === 0) {
-			debugger
-		}
-		return rand
+		return this.strategy.select(this.set)
 	}
 
 	/**
