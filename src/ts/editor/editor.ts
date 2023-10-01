@@ -1,5 +1,4 @@
-import { EditorModel } from '@/ts/editor/editor-model'
-import { ModelParser } from '@/ts/wfc/model-parser'
+import { Cell, EditorModel } from '@/ts/editor/editor-model'
 import { Graphics } from '@/ts/graphics/graphics'
 import { loader } from '@/ts/graphics/Loader'
 import {
@@ -11,6 +10,7 @@ import {
 	LineSegments,
 	Mesh,
 	MeshBasicMaterial,
+	MeshStandardMaterial,
 	PlaneGeometry,
 	Raycaster,
 	Vector2,
@@ -18,50 +18,62 @@ import {
 } from 'three'
 
 interface State {
-	selected: Vector2
+	selected: Vector3
 }
 
-interface Cell {
-	x: number
-	y: number
-	src: string
-	rotation: number
-}
+export type Payload = Cell | null
 
-export class Editor {
+export class Editor extends EventTarget {
 	private readonly GRID_SIZE = 2
 
 	public rayCaster = new Raycaster()
 
 	private dragPlane: Mesh
-	private selectMesh: LineSegments
+	public selectMesh: LineSegments
 	private editable = new Group()
 
 	private state: State = {
-		selected: new Vector2(),
+		selected: new Vector3(),
 	}
+
+	private activeLayer = 0
 
 	private model = new EditorModel()
 
+	private gridHelper: GridHelper
+
+	private static readonly DIMMED_MATERIAL = new MeshStandardMaterial({
+		color: 0x666666,
+		transparent: true,
+		opacity: 0.8,
+	})
+
+	private static readonly ACTIVE_MATERIAL = new MeshStandardMaterial({
+		color: 0xffffff,
+	})
+
 	public constructor(private readonly graphics: Graphics) {
+		super()
+
 		this.dragPlane = this.addDragPlane()
 		this.selectMesh = this.addSelectMesh()
 
 		const divisions = 40
-		const gridHelper = new GridHelper(divisions * this.GRID_SIZE, divisions)
+		this.gridHelper = new GridHelper(divisions * this.GRID_SIZE, divisions)
 
-		this.graphics.scene.add(gridHelper)
+		this.graphics.scene.add(this.gridHelper)
 		this.graphics.scene.add(this.editable)
 
-		graphics.renderer.domElement.addEventListener('mousedown', (event: MouseEvent) =>
+		this.graphics.renderer.domElement.addEventListener('mousedown', (event: MouseEvent) =>
 			this.onMouseDown(event)
 		)
 
-		this.model.addEventListener('model_updated', this.renderComponents.bind(this))
+		const renderComponents = this.renderComponents.bind(this)
+		this.model.addEventListener('model_updated', renderComponents)
+		this.addEventListener('layer_changed', renderComponents)
 	}
 
 	public addItem(src: string) {
-		console.log('this.state.selected', this.state.selected)
 		this.model.addItem(this.state.selected, src)
 	}
 
@@ -77,19 +89,29 @@ export class Editor {
 		this.editable.clear()
 		for (let i = -40; i <= 40; ++i) {
 			for (let j = -40; j <= 40; ++j) {
-				const cell = this.model.getCell(new Vector2(i, j))
-				if (cell) {
-					const mesh = await loader.loadMesh(cell.src)
-					if (mesh) {
-						mesh.position.copy(
-							new Vector3(
-								i * this.GRID_SIZE + this.GRID_SIZE / 2,
-								this.GRID_SIZE / 2,
-								j * this.GRID_SIZE + this.GRID_SIZE / 2
+				for (let k = -40; k <= 40; ++k) {
+					const cell = this.model.getCell(new Vector3(i, j, k))
+					if (cell) {
+						const mesh = await loader.loadMesh(cell.src)
+						if (j !== this.activeLayer) {
+							//@ts-ignore
+							mesh.children[0].material = Editor.DIMMED_MATERIAL
+						} else {
+							//@ts-ignore
+							mesh.children[0].material = Editor.ACTIVE_MATERIAL
+						}
+
+						if (mesh) {
+							mesh.position.copy(
+								new Vector3(
+									i * this.GRID_SIZE + this.GRID_SIZE / 2,
+									j * this.GRID_SIZE + this.GRID_SIZE / 2,
+									k * this.GRID_SIZE + this.GRID_SIZE / 2
+								)
 							)
-						)
-						mesh.rotateY((cell.rotation * Math.PI) / 2)
-						this.editable.add(mesh)
+							mesh.rotateY((cell.rotation * Math.PI) / 2)
+							this.editable.add(mesh)
+						}
 					}
 				}
 			}
@@ -101,17 +123,27 @@ export class Editor {
 		const point = this.getPoint(event)
 		const x = Math.floor(point.x / this.GRID_SIZE)
 		const z = Math.floor(point.z / this.GRID_SIZE)
-
-		this.state.selected = new Vector2(x, z)
-		this.selectMesh.position.copy(this.getSelectionPosition())
+		const y = this.state.selected.y
+		this.changeSelected(new Vector3(x, y, z))
 	}
 
-	private getSelectionPosition() {
-		return new Vector3(
-			this.state.selected.x * this.GRID_SIZE + this.GRID_SIZE / 2,
-			this.GRID_SIZE / 2,
-			this.state.selected.y * this.GRID_SIZE + this.GRID_SIZE / 2
+	private changeSelected(vec: Vector3) {
+		this.state.selected = vec
+		this.updateSelectedPosition()
+		const selected = this.model.getCell(this.state.selected)
+		this.dispatchEvent(new CustomEvent<Payload>('selected', { detail: selected }))
+	}
+
+	private updateSelectedPosition() {
+		this.selectMesh.position.copy(
+			new Vector3(
+				this.state.selected.x * this.GRID_SIZE + this.GRID_SIZE / 2,
+				this.state.selected.y * this.GRID_SIZE + this.GRID_SIZE / 2,
+				this.state.selected.z * this.GRID_SIZE + this.GRID_SIZE / 2
+			)
 		)
+		this.dragPlane.position.y = this.state.selected.y * this.GRID_SIZE
+		this.gridHelper.position.y = this.state.selected.y * this.GRID_SIZE
 	}
 
 	private getPoint(event: MouseEvent) {
@@ -156,5 +188,11 @@ export class Editor {
 		cube.computeLineDistances()
 		this.graphics.scene.add(cube)
 		return cube
+	}
+
+	public setLayer(layer: number) {
+		this.activeLayer = layer
+		this.changeSelected(new Vector3(this.state.selected.x, layer, this.state.selected.z))
+		this.dispatchEvent(new CustomEvent('layer_changed'))
 	}
 }

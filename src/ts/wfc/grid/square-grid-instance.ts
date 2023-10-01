@@ -5,6 +5,7 @@ import { TemplateMask } from '@/ts/wfc/template-mask'
 export class SquareGridInstance {
 	public x: number = 0
 	public y: number = 0
+	public z: number = 0
 
 	public dead = false
 	public dirty = false
@@ -70,6 +71,7 @@ export class SquareGridInstance {
 		clone.dead = this.dead
 		clone.x = this.x
 		clone.y = this.y
+		clone.z = this.z // pizdec
 		return clone
 	}
 

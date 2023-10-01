@@ -3,6 +3,7 @@ import { pause, randomElement } from '../utils/utils.js'
 import { modelParser } from '@/ts/wfc/model-parser.js'
 import { SquareGrid } from '@/ts/wfc/grid/square-grid.js'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance.js'
+import { Vector3 } from 'three'
 
 const GUARD_LIMIT = 5000
 
@@ -10,10 +11,16 @@ interface HistoryItem {
 	instancePos: {
 		x: number
 		y: number
+		z: number
 	}
 	retries: number
 	leftStates: TemplateMask
-	state: SquareGridInstance[][]
+	state: SquareGridInstance[][][]
+}
+
+export interface SolverEventPayload {
+	current?: Vector3
+	set: SquareGrid
 }
 
 export class Solver extends EventTarget {
@@ -21,9 +28,9 @@ export class Solver extends EventTarget {
 	public static checks = 0
 	private runFlag = false
 
-	history: HistoryItem[] = []
+	private history: HistoryItem[] = []
 
-	public constructor(private set: SquareGrid) {
+	public constructor(private readonly set: SquareGrid) {
 		super()
 	}
 
@@ -36,6 +43,7 @@ export class Solver extends EventTarget {
 			instancePos: {
 				x: tmpin.x,
 				y: tmpin.y,
+				z: tmpin.z,
 			},
 			leftStates: tmpin.mask.clone(),
 			state: this.set.cloneState(),
@@ -65,7 +73,8 @@ export class Solver extends EventTarget {
 			try {
 				const instance = this.set.tryGetElementAt(
 					currentHistoryItem.instancePos.x,
-					currentHistoryItem.instancePos.y
+					currentHistoryItem.instancePos.y,
+					currentHistoryItem.instancePos.z
 				)
 
 				// add assert left states should be included in current instance mask
@@ -75,9 +84,7 @@ export class Solver extends EventTarget {
 
 				instance.collapseTo(index)
 				instance.dirty = true
-
-				const event = new Event('element_collapsed', { bubbles: true })
-				this.dispatchEvent(event)
+				this.notify(currentHistoryItem)
 				await pause(10)
 
 				this.propagate()
@@ -86,6 +93,10 @@ export class Solver extends EventTarget {
 				this.checkHistory(currentHistoryItem, index)
 				continue
 			}
+
+			console.groupCollapsed('this.set.instances[1][1][1].z', this.set.instances[1][1][1].z)
+			console.trace()
+			console.groupEnd()
 
 			// propagation is ok move to next history step
 			const inst2 = this.getNextElement()
@@ -100,12 +111,27 @@ export class Solver extends EventTarget {
 				instancePos: {
 					x: inst2.x,
 					y: inst2.y,
+					z: inst2.z,
 				},
 				leftStates: inst2.mask.clone(),
 				state: this.set.cloneState(),
 				retries: 0,
 			})
 		}
+	}
+
+	private notify(currentHistoryItem: HistoryItem) {
+		const event = new CustomEvent<SolverEventPayload>('element_collapsed', {
+			detail: {
+				current: new Vector3(
+					currentHistoryItem.instancePos.x,
+					currentHistoryItem.instancePos.y,
+					currentHistoryItem.instancePos.z
+				),
+				set: this.set,
+			},
+		})
+		this.dispatchEvent(event)
 	}
 
 	public stop() {
@@ -247,7 +273,11 @@ export class Solver extends EventTarget {
 			return null
 		}
 
-		return randomElement<SquareGridInstance>(elements)
+		const rand = randomElement<SquareGridInstance>(elements)
+		if (rand.z === 0) {
+			debugger
+		}
+		return rand
 	}
 
 	/**

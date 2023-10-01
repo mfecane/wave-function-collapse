@@ -6,7 +6,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
-import { build, stop } from '@/ts/wfc/cube-collapser'
+import { build, stop } from '@/ts/wfc/collapse'
 
 const canvas = ref<HTMLDivElement>()
 
