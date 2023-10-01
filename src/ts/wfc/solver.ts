@@ -36,7 +36,13 @@ export class Solver extends EventTarget {
 
 	public async run() {
 		this.runFlag = true
-		this.propagate()
+
+		try {
+			this.propagate()
+		} catch (error) {
+			throw 'First propagation failed'
+		}
+
 		const tmpin = this.getNextElement()
 
 		this.history.push({

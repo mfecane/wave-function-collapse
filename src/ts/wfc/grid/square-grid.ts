@@ -8,8 +8,8 @@ type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverA
 ]
 
 export class SquareGrid {
-	public static readonly MAX_HORIZONTAL = 13
-	public static readonly MAX_VERTICAL = 10
+	public static readonly MAX_HORIZONTAL = 15
+	public static readonly MAX_VERTICAL = 6
 
 	public instances: (SquareGridInstance | null)[][][] = []
 
@@ -37,9 +37,17 @@ export class SquareGrid {
 						instance.dirty = true
 					}
 
-					if (y === 0 || y === SquareGrid.MAX_VERTICAL - 1) {
-						instance.collapseToId('void')
-						instance.dirty = true
+					if (y === 0) {
+						if (instance.countStates() > 1) {
+							instance.collapseToId('ground')
+							instance.dirty = true
+						}
+					}
+
+					if (y === SquareGrid.MAX_VERTICAL - 1) {
+						if (instance.countStates() > 1) {
+							instance.collapseToId('void')
+						}
 					}
 
 					this.instances[x][y][z] = instance

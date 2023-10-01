@@ -10,3 +10,4 @@ to play with the solver
 -   implement radial symmetry
 -   add weight to model
 -   nicer GUI, logo
+-   optimization: bias towards lower layers

@@ -59,19 +59,30 @@ export class ModelParser {
 			}))
 		)
 
-		// make voids adjacent to each other
-		for (const key of Object.values(AdjacencyKey)) {
-			this.templates[0][key].on(0)
-		}
+		this.setupDefaultConstraints()
 
 		model.model.forEach((cell) => {
 			this.parseCell(model, cell)
 		})
 
-		this.addZeros()
-
 		console.log('parser::iterations', this.iterations)
 		console.log('parser::templates', this.templates)
+	}
+
+	private setupDefaultConstraints() {
+		// TODO extract asap and annotate
+		// make voids adjacent to each other
+
+		for (const key of Object.values(AdjacencyKey)) {
+			this.templates[0][key].on(0)
+		}
+		for (const key of [AdjacencyKey.px, AdjacencyKey.nx, AdjacencyKey.nz, AdjacencyKey.pz]) {
+			this.templates[0][key].on(1)
+			this.templates[1][key].on(0)
+			this.templates[1][key].on(1)
+		}
+		this.templates[0].ny.on(1)
+		this.templates[1].py.on(0)
 	}
 
 	public getTemplates() {
@@ -98,8 +109,7 @@ export class ModelParser {
 	}
 
 	private getDefaultTemplates(): TemplateData[] {
-		// return ['void', 'ground'].map((src) => ({ src, id: src, rotation: 0 }))
-		return ['void'].map((src) => ({ src, id: src, rotation: 0 }))
+		return ['void', 'ground'].map((src) => ({ src, id: src, rotation: 0 }))
 	}
 
 	private parseCell(model: EditorModel, cell: Cell) {
@@ -112,13 +122,16 @@ export class ModelParser {
 		this.parsePair(model, AdjacencyKey.nz, cell, p.clone().add(new Vector3(0, 0, -1)))
 	}
 
+	/**
+	 * @note A very bold assumption that we don't have any tiles under ground
+	 * should restrict in editor model
+	 */
 	private parsePair(model: EditorModel, key: AdjacencyKey, cell1: Cell, position2: Vector3) {
-		console.log('position2', position2)
 		const cell2: Cell | null = model.getCell(position2)
 		if (cell2) {
-			this.mateTwo(cell1.src, cell1.rotation, cell2.src, cell2.rotation, key)
+			this.mateTwo(cell1.src, cell1.rotation, cell2.src, cell2.rotation, key, false)
 		} else {
-			this.mateTwo(cell1.src, cell1.rotation, 'жопа', 0, key)
+			this.mateTwo(cell1.src, cell1.rotation, 'жопа', 0, key, position2.y < 0)
 		}
 	}
 
@@ -127,39 +140,22 @@ export class ModelParser {
 		rotation1: number,
 		src2: string,
 		rotation2: number,
-		key: AdjacencyKey
+		key: AdjacencyKey,
+		isGround: boolean
 	): void {
 		for (let rotation = 0; rotation < 4; ++rotation) {
 			// ? why '-'
 			const key1 = this.rotateKey(key, -rotation)
 			const key2 = this.reverseKey(key1)
 			const index1 = this.findTemplateIndex(src1, this.addRotate(rotation1, rotation))
-			const index2 = this.findTemplateIndex(src2, this.addRotate(rotation2, rotation)) ?? 0
+			let index2 = this.findTemplateIndex(src2, this.addRotate(rotation2, rotation))
+			if (!index2) {
+				index2 = isGround ? 1 : 0
+			}
 			this.templates[index1][key1].on(index2)
-			// if (index2 === 0) {
-			// 	console.log(key2, index1)
-			// }
 			this.templates[index2][key2].on(index1)
 			this.iterations++
 		}
-	}
-
-	/**
-	 * @todo this shit is not being called
-	 * even more it is bad if we didn't place any instance of model on the grid
-	 */
-	private addZeros(): void {
-		return
-		this.templates.forEach((el, index) => {
-			if (index === 0) return
-
-			for (const key of Object.values(AdjacencyKey)) {
-				if (el[key].isAllZeros()) {
-					el[key].on(0)
-					this.mateTwo(el.src, el.rotation, 'null', 0, key)
-				}
-			}
-		})
 	}
 
 	private addRotate(n1: number, n2: number): number {
