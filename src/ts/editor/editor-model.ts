@@ -1,16 +1,15 @@
 import { debounce } from '@/ts/utils/debounce'
 import { modelParser } from '@/ts/wfc/model-parser'
-import { Vector2 } from 'three'
+import { Vector3 } from 'three'
 
 export interface Cell {
-	x: number
-	y: number
+	position: Vector3
 	src: string
 	rotation: number
 }
 
 export class EditorModel extends EventTarget {
-	private model: Cell[] = []
+	public model: Cell[] = []
 	private event = new Event('model_updated', { bubbles: true })
 
 	public constructor() {
@@ -21,13 +20,11 @@ export class EditorModel extends EventTarget {
 		window.setTimeout(this.load.bind(this), 100)
 	}
 
-	public addItem(selected: Vector2, src: string) {
-		const { x, y } = selected
-		const cell = this.getCell(selected)
+	public addItem(position: Vector3, src: string) {
+		const cell = this.getCell(position)
 		if (!cell) {
 			this.model.push({
-				x,
-				y,
+				position,
 				src,
 				rotation: 0,
 			})
@@ -37,24 +34,22 @@ export class EditorModel extends EventTarget {
 		this.dispatchEvent(this.event)
 	}
 
-	public rotateItem(selected: Vector2) {
-		const cell = this.getCell(selected)
+	public rotateItem(position: Vector3) {
+		const cell = this.getCell(position)
 		if (cell) cell.rotation = (cell.rotation + 1) % 4
 		this.dispatchEvent(this.event)
 	}
 
-	public deleteCell(selected: Vector2) {
-		const { x, y } = selected
-		const index = this.model.findIndex((el) => el.x === x && el.y === y)
+	public deleteCell(position: Vector3) {
+		const index = this.model.findIndex((el) => el.position.equals(position))
 		if (index !== -1) {
 			this.model.splice(index, 1)
 		}
 		this.dispatchEvent(this.event)
 	}
 
-	public getCell(selected: Vector2): Cell | null {
-		const { x, y } = selected
-		return this.model.find((el) => el.x === x && el.y === y) ?? null
+	public getCell(position: Vector3): Cell | null {
+		return this.model.find((el) => el.position.equals(position)) ?? null
 	}
 
 	private serialize() {
@@ -65,6 +60,9 @@ export class EditorModel extends EventTarget {
 		const data = localStorage.getItem('editor-model-data')
 		if (data) {
 			this.model = JSON.parse(data)
+			this.model.forEach((el) => {
+				el.position = new Vector3(el.position.x, el.position.y, el.position.z)
+			})
 			this.dispatchEvent(this.event)
 			modelParser.parse(this)
 		}

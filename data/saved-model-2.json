@@ -1,0 +1,82 @@
+[
+	{
+		"position": {
+			"isVector3": true,
+			"x": -1,
+			"y": 0,
+			"z": 0
+		},
+		"src": "meshes/corner.obj",
+		"rotation": 0
+	},
+	{
+		"position": {
+			"isVector3": true,
+			"x": 0,
+			"y": 1,
+			"z": 0
+		},
+		"src": "meshes/corner.obj",
+		"rotation": 1
+	},
+	{
+		"position": {
+			"isVector3": true,
+			"x": -1,
+			"y": 0,
+			"z": -1
+		},
+		"src": "meshes/corner.obj",
+		"rotation": 3
+	},
+	{
+		"position": {
+			"isVector3": true,
+			"x": 0,
+			"y": 0,
+			"z": 0
+		},
+		"src": "meshes/corner.obj",
+		"rotation": 1
+	},
+	{
+		"position": {
+			"isVector3": true,
+			"x": 0,
+			"y": 0,
+			"z": -1
+		},
+		"src": "meshes/corner.obj",
+		"rotation": 2
+	},
+	{
+		"position": {
+			"isVector3": true,
+			"x": 0,
+			"y": 1,
+			"z": -1
+		},
+		"src": "meshes/corner.obj",
+		"rotation": 2
+	},
+	{
+		"position": {
+			"isVector3": true,
+			"x": -1,
+			"y": 1,
+			"z": -1
+		},
+		"src": "meshes/corner.obj",
+		"rotation": 3
+	},
+	{
+		"position": {
+			"isVector3": true,
+			"x": -1,
+			"y": 1,
+			"z": 0
+		},
+		"src": "meshes/corner.obj",
+		"rotation": 0
+	}
+]

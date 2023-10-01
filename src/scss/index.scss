@@ -21,3 +21,14 @@ body {
 	text-align: center;
 	color: white;
 }
+
+.rotate__button {
+	width: 64px;
+	height: 64px;
+	background: center center / 70% url(/svg/rotate.svg) no-repeat, white;
+	border-radius: 32px;
+
+	&.hidden {
+		display: none;
+	}
+}

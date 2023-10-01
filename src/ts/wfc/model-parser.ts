@@ -1,23 +1,26 @@
 import { Cell, EditorModel } from '@/ts/editor/editor-model'
-import { Vector2 } from 'three'
+import { Vector2, Vector3 } from 'three'
 import { TemplateMask } from '@/ts/wfc/template-mask'
-import { TemplateMaskFactory } from '@/ts/wfc/template-mask-factory'
 
-export enum CubeAdjacency {
+export enum AdjacencyKey {
 	px = 'px',
 	nx = 'nx',
 	py = 'py',
 	ny = 'ny',
+	pz = 'pz',
+	nz = 'nz',
 }
 
 export interface TemplateData {
 	src: string
 	id: string
 	rotation: 0
-	[CubeAdjacency.px]?: TemplateMask
-	[CubeAdjacency.py]?: TemplateMask
-	[CubeAdjacency.nx]?: TemplateMask
-	[CubeAdjacency.ny]?: TemplateMask
+	[AdjacencyKey.px]?: TemplateMask
+	[AdjacencyKey.py]?: TemplateMask
+	[AdjacencyKey.nx]?: TemplateMask
+	[AdjacencyKey.ny]?: TemplateMask
+	[AdjacencyKey.pz]?: TemplateMask
+	[AdjacencyKey.nz]?: TemplateMask
 }
 
 const srcs = ['meshes/corner.obj', 'meshes/wall.obj']
@@ -29,15 +32,13 @@ const srcs = ['meshes/corner.obj', 'meshes/wall.obj']
  * @todo account for symmetry rules
  * If one side of cell template does not have any connections make it to connect with void
  * @todo and also with any other empty connection side
- * @todo try to analyze temoplate mesh to find connections with void
+ * @idea try to analyze template mesh to find connections with no vertices to automatically mate it with the void
  */
 export class ModelParser {
+	public iterations = 0
 	private readonly templates: TemplateData[] = []
-	private readonly templateMaskFactory: TemplateMaskFactory
 
-	public constructor() {
-		this.templateMaskFactory = new TemplateMaskFactory()
-	}
+	public constructor() {}
 
 	public parse(model: EditorModel) {
 		this.templates.splice(0)
@@ -50,28 +51,28 @@ export class ModelParser {
 			...tmpTemplates.map((el) => ({
 				...el,
 				id: el.src,
-				px: this.templateMaskFactory.create(templateCount),
-				nx: this.templateMaskFactory.create(templateCount),
-				py: this.templateMaskFactory.create(templateCount),
-				ny: this.templateMaskFactory.create(templateCount),
+				[AdjacencyKey.px]: new TemplateMask(templateCount),
+				[AdjacencyKey.nx]: new TemplateMask(templateCount),
+				[AdjacencyKey.py]: new TemplateMask(templateCount),
+				[AdjacencyKey.ny]: new TemplateMask(templateCount),
+				[AdjacencyKey.pz]: new TemplateMask(templateCount),
+				[AdjacencyKey.nz]: new TemplateMask(templateCount),
 			}))
 		)
 
-		// make zeros adjacent to each other
-		for (const key of Object.values(CubeAdjacency)) {
-			this.templates[0][key].setAt2(0)
+		// make voids adjacent to each other
+		for (const key of Object.values(AdjacencyKey)) {
+			this.templates[0][key].on(0)
 		}
 
-		for (let i = -40; i <= 40; ++i) {
-			for (let j = -40; j <= 40; ++j) {
-				// if (!model.getCell(new Vector2(i, j))) continue
-				// todo optimize
-				this.parseCell(model, new Vector2(i, j))
-			}
-		}
+		model.model.forEach((cell) => {
+			this.parseCell(model, cell)
+		})
 
 		this.addZeros()
-		console.log('parsed templates', this.templates)
+
+		console.log('parser::iterations', this.iterations)
+		console.log('parser::templates', this.templates)
 	}
 
 	public getTemplates() {
@@ -89,11 +90,11 @@ export class ModelParser {
 		return res
 	}
 
-	private findTemplateIndex(_src: string, _rotation: number): number {
+	private findTemplateIndex(_src: string, _rotation: number): number | null {
 		const res = this.templates.findIndex(
 			({ src, rotation }) => src === _src && rotation === _rotation
 		)
-		if (res === -1) throw 'Template not found'
+		if (res === -1) return null
 		return res
 	}
 
@@ -101,102 +102,94 @@ export class ModelParser {
 		return ['void'].map((src) => ({ src, id: src, rotation: 0 }))
 	}
 
-	private parseCell(model: EditorModel, position: Vector2) {
-		if (!model.getCell(position)) return
-		this.parsePair(model, CubeAdjacency.px, position, position.clone().add(new Vector2(1, 0)))
-		this.parsePair(model, CubeAdjacency.nx, position, position.clone().add(new Vector2(-1, 0)))
-		this.parsePair(model, CubeAdjacency.py, position, position.clone().add(new Vector2(0, 1)))
-		this.parsePair(model, CubeAdjacency.ny, position, position.clone().add(new Vector2(0, -1)))
+	private parseCell(model: EditorModel, cell: Cell) {
+		const p = cell.position
+		this.parsePair(model, AdjacencyKey.px, cell, p.clone().add(new Vector3(1, 0, 0)))
+		this.parsePair(model, AdjacencyKey.nx, cell, p.clone().add(new Vector3(-1, 0, 0)))
+		this.parsePair(model, AdjacencyKey.py, cell, p.clone().add(new Vector3(0, 1, 0)))
+		this.parsePair(model, AdjacencyKey.ny, cell, p.clone().add(new Vector3(0, -1, 0)))
+		this.parsePair(model, AdjacencyKey.pz, cell, p.clone().add(new Vector3(0, 0, 1)))
+		this.parsePair(model, AdjacencyKey.nz, cell, p.clone().add(new Vector3(0, 0, -1)))
 	}
 
-	private parsePair(
-		model: EditorModel,
-		key: CubeAdjacency,
-		position: Vector2,
-		position2: Vector2
-	) {
-		// todo memoize
-		this.parsePairRotate(0, key, model.getCell(position), model.getCell(position2))
-		this.parsePairRotate(1, key, model.getCell(position), model.getCell(position2))
-		this.parsePairRotate(2, key, model.getCell(position), model.getCell(position2))
-		this.parsePairRotate(3, key, model.getCell(position), model.getCell(position2))
-	}
-
-	private parsePairRotate(rotation: number, key: CubeAdjacency, cell1: Cell, cell2: Cell | null) {
-		const key2 = this.rotateKey(key, -rotation)
-
-		let index1: number
-		if (cell1) {
-			//symmetry
-			index1 = this.findTemplateIndex(cell1.src, this.addRotate(cell1.rotation, rotation))
-		} else {
-			index1 = 0
-		}
-
-		let index2: number
+	private parsePair(model: EditorModel, key: AdjacencyKey, cell1: Cell, position2: Vector3) {
+		const cell2: Cell | null = model.getCell(position2)
 		if (cell2) {
-			//symmetry
-			index2 = this.findTemplateIndex(cell2.src, this.addRotate(cell2.rotation, rotation))
+			this.mateTwo(cell1.src, cell1.rotation, cell2.src, cell2.rotation, key)
 		} else {
-			index2 = 0
-		}
-
-		const mask = this.templates[index1][key2]
-		mask.setAt2(index2)
-		const key3 = this.reverseKey(key2)
-
-		const mask2 = this.templates[index2][key3]
-		mask2.setAt2(index1)
-	}
-
-	private rotateKey(key: CubeAdjacency, rotation: number): CubeAdjacency {
-		const arr = [CubeAdjacency.px, CubeAdjacency.py, CubeAdjacency.nx, CubeAdjacency.ny]
-		let index = arr.findIndex((el) => el === key)
-		if (index === -1) throw "Can't rotate index"
-		return arr[this.addRotate(index, rotation)]
-	}
-
-	private reverseKey(key: CubeAdjacency): CubeAdjacency {
-		switch (key) {
-			case CubeAdjacency.px:
-				return CubeAdjacency.nx
-			case CubeAdjacency.nx:
-				return CubeAdjacency.px
-			case CubeAdjacency.py:
-				return CubeAdjacency.ny
-			case CubeAdjacency.ny:
-				return CubeAdjacency.py
+			this.mateTwo(cell1.src, cell1.rotation, 'жопа', 0, key)
 		}
 	}
 
+	private mateTwo(
+		src1: string,
+		rotation1: number,
+		src2: string,
+		rotation2: number,
+		key: AdjacencyKey
+	): void {
+		for (let rotation = 0; rotation < 4; ++rotation) {
+			// ? why '-'
+			const key1 = this.rotateKey(key, -rotation)
+			const key2 = this.reverseKey(key1)
+			const index1 = this.findTemplateIndex(src1, this.addRotate(rotation1, rotation))
+			const index2 = this.findTemplateIndex(src2, this.addRotate(rotation2, rotation)) ?? 0
+			this.templates[index1][key1].on(index2)
+			// if (index2 === 0) {
+			// 	console.log(key2, index1)
+			// }
+			this.templates[index2][key2].on(index1)
+			this.iterations++
+		}
+	}
+
+	/**
+	 * @todo this shit is not being called
+	 * even more it is bad if we didn't place any instance of model on the grid
+	 */
 	private addZeros(): void {
+		return
 		this.templates.forEach((el, index) => {
 			if (index === 0) return
 
-			for (const key of Object.values(CubeAdjacency)) {
+			for (const key of Object.values(AdjacencyKey)) {
 				if (el[key].isAllZeros()) {
-					el[key].setAt2(0)
-					this.propagateWithZero(el.src, el.rotation, key)
+					el[key].on(0)
+					this.mateTwo(el.src, el.rotation, 'null', 0, key)
 				}
 			}
 		})
 	}
 
-	private propagateWithZero(src: string, rotation: number, key: CubeAdjacency) {
-		const zeroTemplate = this.templates[0]
-		const key1 = this.reverseKey(key)
-		for (let rot = 0; rot < 4; ++rot) {
-			const key2 = this.rotateKey(key1, rot)
-			console.log('key2', key2)
-			const index = this.findTemplateIndex(src, this.addRotate(rotation, rot))
-			zeroTemplate[key2].setAt2(index)
-		}
-
-		// TODO mate voids with each other
-	}
-
 	private addRotate(n1: number, n2: number): number {
 		return (4 + n1 + n2) % 4
+	}
+
+	private rotateKey(key: AdjacencyKey, rotation: number): AdjacencyKey {
+		if ([AdjacencyKey.py, AdjacencyKey.ny].includes(key)) {
+			return key
+		}
+		const arr = [AdjacencyKey.px, AdjacencyKey.pz, AdjacencyKey.nx, AdjacencyKey.nz]
+		let index = arr.findIndex((el) => el === key)
+		if (index === -1) throw "Can't rotate index"
+		return arr[this.addRotate(index, rotation)]
+	}
+
+	private reverseKey(key: AdjacencyKey): AdjacencyKey {
+		switch (key) {
+			case AdjacencyKey.px:
+				return AdjacencyKey.nx
+			case AdjacencyKey.nx:
+				return AdjacencyKey.px
+			case AdjacencyKey.py:
+				return AdjacencyKey.ny
+			case AdjacencyKey.ny:
+				return AdjacencyKey.py
+			case AdjacencyKey.pz:
+				return AdjacencyKey.nz
+			case AdjacencyKey.nz:
+				return AdjacencyKey.pz
+		}
 	}
 }
 

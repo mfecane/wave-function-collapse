@@ -1,52 +1,63 @@
 import { assertBoolean } from '@/ts/utils/utils'
-import { CubeAdjacency, modelParser } from '@/ts/wfc/model-parser'
+import { AdjacencyKey, modelParser } from '@/ts/wfc/model-parser'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance'
 
 type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverAgain = [
 	element: SquareGridInstance,
-	adjacencyInfo: CubeAdjacency
+	adjacencyInfo: AdjacencyKey
 ]
 
 export class SquareGrid {
-	public MAX_HORIZONTAL = 13
-	public MAX_VERTICAL = 3
+	public static readonly MAX_HORIZONTAL = 9
+	public static readonly MAX_VERTICAL = 5
 
-	public instances: (SquareGridInstance | null)[][] = []
+	public instances: (SquareGridInstance | null)[][][] = []
 
 	public constructor() {}
 
 	public fill() {
-		for (let i = 0; i < this.MAX_HORIZONTAL; ++i) {
-			this.instances[i] = []
-			for (let j = 0; j < this.MAX_HORIZONTAL; ++j) {
-				const instance = new SquareGridInstance()
-				instance.x = i
-				instance.y = j
+		for (let x = 0; x < SquareGrid.MAX_HORIZONTAL; ++x) {
+			this.instances[x] = []
+			for (let y = 0; y < SquareGrid.MAX_VERTICAL; ++y) {
+				this.instances[x][y] = []
+				for (let z = 0; z < SquareGrid.MAX_HORIZONTAL; ++z) {
+					const instance = new SquareGridInstance()
+					instance.x = x
+					instance.y = y
+					instance.z = z
 
-				// walls
-				if (
-					i === 0 ||
-					j === 0 ||
-					i === this.MAX_HORIZONTAL - 1 ||
-					j === this.MAX_HORIZONTAL - 1
-				) {
-					instance.collapseToId('void')
-					instance.dirty = true
+					// walls
+					if (
+						x === 0 ||
+						z === 0 ||
+						x === SquareGrid.MAX_HORIZONTAL - 1 ||
+						z === SquareGrid.MAX_HORIZONTAL - 1
+					) {
+						instance.collapseToId('void')
+						instance.dirty = true
+					}
+
+					if (y === 0 || y === SquareGrid.MAX_VERTICAL - 1) {
+						instance.collapseToId('void')
+						instance.dirty = true
+					}
+
+					this.instances[x][y][z] = instance
 				}
-
-				this.instances[i][j] = instance
 			}
 		}
 	}
 
 	public eachElement(callback: (instance: SquareGridInstance) => void) {
-		this.eachElementByIndex((x, y) => callback(this.instances[x][y]))
+		this.eachElementByIndex((x, y, z) => callback(this.instances[x][y][z]))
 	}
 
-	public eachElementByIndex(callback: (x: number, y: number) => void) {
+	public eachElementByIndex(callback: (x: number, y: number, z: number) => void) {
 		for (let i = 0; i < this.instances.length; ++i) {
 			for (let j = 0; j < this.instances[i].length; ++j) {
-				callback(i, j)
+				for (let k = 0; k < this.instances[i][j].length; ++k) {
+					callback(i, j, k)
+				}
 			}
 		}
 	}
@@ -56,17 +67,20 @@ export class SquareGrid {
 		for (let i = 0; i < this.instances.length; ++i) {
 			result[i] = []
 			for (let j = 0; j < this.instances[i].length; ++j) {
-				result[i][j] = { ...this.instances[i][j] }
+				for (let k = 0; k < this.instances[i][j].length; ++k) {
+					result[i][j][k] = { ...this.instances[i][j][k] }
+				}
 			}
 		}
 		console.log(result)
 	}
 
-	public printFinishedSlice() {
+	public printFinishedSlice(z: number) {
+		assertBoolean(z >= 0 && z < SquareGrid.MAX_HORIZONTAL)
 		let result = ''
 		for (let i = 0; i < this.instances.length; ++i) {
 			for (let j = 0; j < this.instances[i].length; ++j) {
-				const instance = this.instances[i][j]
+				const instance = this.instances[i][j][z]
 				assertBoolean(instance.enthropy <= 1)
 				result += `\t${
 					modelParser.getTemplates()[instance.tryGetOnlyState()]?.id ?? 'dead'
@@ -92,18 +106,40 @@ export class SquareGrid {
 		const result: AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverAgain[] =
 			[]
 
-		pushIf(result, [this.tryGetElementAt(reference.x + 1, reference.y), CubeAdjacency.px])
-		pushIf(result, [this.tryGetElementAt(reference.x - 1, reference.y), CubeAdjacency.nx])
-		pushIf(result, [this.tryGetElementAt(reference.x, reference.y + 1), CubeAdjacency.py])
-		pushIf(result, [this.tryGetElementAt(reference.x, reference.y - 1), CubeAdjacency.ny])
+		pushIf(result, [
+			this.tryGetElementAt(reference.x + 1, reference.y, reference.z),
+			AdjacencyKey.px,
+		])
+		pushIf(result, [
+			this.tryGetElementAt(reference.x - 1, reference.y, reference.z),
+			AdjacencyKey.nx,
+		])
+		pushIf(result, [
+			this.tryGetElementAt(reference.x, reference.y + 1, reference.z),
+			AdjacencyKey.py,
+		])
+		pushIf(result, [
+			this.tryGetElementAt(reference.x, reference.y - 1, reference.z),
+			AdjacencyKey.ny,
+		])
+		pushIf(result, [
+			this.tryGetElementAt(reference.x, reference.y, reference.z + 1),
+			AdjacencyKey.pz,
+		])
+		pushIf(result, [
+			this.tryGetElementAt(reference.x, reference.y, reference.z - 1),
+			AdjacencyKey.nz,
+		])
 
 		return result
 	}
 
-	public tryGetElementAt(x: number, y: number) {
+	public tryGetElementAt(x: number, y: number, z: number) {
 		if (x >= 0 && x < this.instances.length) {
 			if (y >= 0 && y < this.instances[x].length) {
-				return this.instances[x][y]
+				if (z >= 0 && z < this.instances[x][y].length) {
+					return this.instances[x][y][z]
+				}
 			}
 		}
 		return null
@@ -112,9 +148,11 @@ export class SquareGrid {
 	public getNextDirtyElement() {
 		for (let x = 0; x < this.instances.length; ++x) {
 			for (let y = 0; y < this.instances[x].length; ++y) {
-				const instance = this.instances[x][y]
-				if (instance.dirty) {
-					return instance
+				for (let z = 0; z < this.instances[x][y].length; ++z) {
+					const instance = this.instances[x][y][z]
+					if (instance.dirty) {
+						return instance
+					}
 				}
 			}
 		}
@@ -124,20 +162,27 @@ export class SquareGrid {
 	public validataSolved(): boolean {
 		for (let x = 0; x < this.instances.length; ++x) {
 			for (let y = 0; y < this.instances[x].length; ++y) {
-				const instance = this.instances[x][y]
-				if (instance.enthropy > 1) {
-					return false
+				for (let z = 0; z < this.instances[x][y].length; ++z) {
+					const instance = this.instances[x][y][z]
+					if (instance.enthropy > 1) {
+						return false
+					}
 				}
 			}
 		}
 		return true
 	}
 
-	public cloneState(): SquareGridInstance[][] {
-		return this.instances.map((el1) => el1.map((el2) => el2.clone()))
+	public cloneState(): SquareGridInstance[][][] {
+		// console.log('set.instances[1][1][1].z', this.instances[1][1][1].z)
+		const a = this.instances.map((el1) => el1.map((el2) => el2.map((el3) => el3.clone())))
+		// console.log('set.instances[1][1][1].z', this.instances[1][1][1].z)
+		return a
 	}
 
-	public replaceState(instances: SquareGridInstance[][]) {
-		this.instances = instances.map((el1) => el1.map((el2) => el2.clone()))
+	public replaceState(instances: SquareGridInstance[][][]) {
+		console.log('set.instances[1][1][1].z', this.instances[1][1][1].z)
+		this.instances = instances.map((el1) => el1.map((el2) => el2.map((el3) => el3.clone())))
+		console.log('set.instances[1][1][1].z', this.instances[1][1][1].z)
 	}
 }

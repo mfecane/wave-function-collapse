@@ -1,10 +1,7 @@
 import {
 	AxesHelper,
-	BoxGeometry,
 	Camera,
 	Color,
-	Mesh,
-	MeshLambertMaterial,
 	PerspectiveCamera,
 	Scene,
 	SpotLight,
@@ -13,7 +10,7 @@ import {
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-export class Graphics {
+export class Graphics extends EventTarget {
 	private static readonly DEBUG = true
 
 	public readonly scene: Scene
@@ -21,7 +18,10 @@ export class Graphics {
 	public readonly renderer: WebGLRenderer
 	public readonly orbitControls: OrbitControls
 
+	private cameraRotatedEvent = new Event('camera_rotated')
+
 	public constructor(private readonly container: HTMLDivElement) {
+		super()
 		this.scene = new Scene()
 		this.scene.background = new Color(0xc0ccd1)
 
@@ -54,6 +54,10 @@ export class Graphics {
 		this.addDebug()
 
 		this.orbitControls = this.addOrbitControls()
+		this.orbitControls.addEventListener(
+			'change',
+			this.dispatchEvent.bind(this, this.cameraRotatedEvent)
+		)
 	}
 
 	public animate() {

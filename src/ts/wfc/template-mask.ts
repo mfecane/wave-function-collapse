@@ -48,11 +48,11 @@ export class TemplateMask {
 		return randomElement(indices)
 	}
 
-	public setAt2(i: number) {
+	public on(i: number) {
 		this.setAt(i, 1)
 	}
 
-	public clearAt(i: number) {
+	public off(i: number) {
 		this.setAt(i, 0)
 	}
 
