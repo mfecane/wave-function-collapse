@@ -8,6 +8,7 @@
 		</div>
 		<button class="btn" @click="onRotateClick" style="display: none">Rotate</button>
 		<button class="btn" @click="onDeleteClick">Delete</button>
+		<button class="btn" @click="loadDefault">Load Default</button>
 		<InputNumber
 			v-model="value2"
 			inputId="minmax-buttons"
@@ -22,19 +23,20 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 import { meshPreviewRenderer } from '@/ts/graphics/MeshPreviewRenderer'
 import { useEditor } from '@/ts/hooks/useEditor'
+import { models } from '@/ts/data/models'
 import InputNumber from 'primevue/inputnumber'
 
 const templateDataLocal = ref<{ src: string; data: string }[]>([])
 
-const { addObject, rotateObject, deleteCell, setLayer } = useEditor()
+const { addObject, rotateObject, deleteCell, setLayer, loadDefault } = useEditor()
 
 const value2 = ref(0)
 
 onMounted(async () => {
-	const templatesData = ['void', 'meshes/corner.obj', 'meshes/wall.obj']
+	const templatesData = ['void', ...models]
 	for (let i = 0; i < templatesData.length; ++i) {
 		const src = templatesData[i]
 		const data = await meshPreviewRenderer.render(src)

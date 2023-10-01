@@ -1,6 +1,7 @@
 import { Cell, EditorModel } from '@/ts/editor/editor-model'
-import { Vector2, Vector3 } from 'three'
+import { Vector3 } from 'three'
 import { TemplateMask } from '@/ts/wfc/template-mask'
+import { models } from '@/ts/data/models'
 
 export enum AdjacencyKey {
 	px = 'px',
@@ -22,8 +23,6 @@ export interface TemplateData {
 	[AdjacencyKey.pz]?: TemplateMask
 	[AdjacencyKey.nz]?: TemplateMask
 }
-
-const srcs = ['meshes/corner.obj', 'meshes/wall.obj']
 
 /**
  * @description creates array of templates to feed to the algorythm by parsing grid created by the user
@@ -81,11 +80,11 @@ export class ModelParser {
 
 	private getSrcTemplates(): TemplateData[] {
 		const res = []
-		for (let i = 0; i < srcs.length; ++i) {
-			res.push({ src: srcs[i], rotation: 0 })
-			res.push({ src: srcs[i], rotation: 1 })
-			res.push({ src: srcs[i], rotation: 2 })
-			res.push({ src: srcs[i], rotation: 3 })
+		for (let i = 0; i < models.length; ++i) {
+			res.push({ src: models[i], rotation: 0 })
+			res.push({ src: models[i], rotation: 1 })
+			res.push({ src: models[i], rotation: 2 })
+			res.push({ src: models[i], rotation: 3 })
 		}
 		return res
 	}
@@ -99,6 +98,7 @@ export class ModelParser {
 	}
 
 	private getDefaultTemplates(): TemplateData[] {
+		// return ['void', 'ground'].map((src) => ({ src, id: src, rotation: 0 }))
 		return ['void'].map((src) => ({ src, id: src, rotation: 0 }))
 	}
 
@@ -113,6 +113,7 @@ export class ModelParser {
 	}
 
 	private parsePair(model: EditorModel, key: AdjacencyKey, cell1: Cell, position2: Vector3) {
+		console.log('position2', position2)
 		const cell2: Cell | null = model.getCell(position2)
 		if (cell2) {
 			this.mateTwo(cell1.src, cell1.rotation, cell2.src, cell2.rotation, key)

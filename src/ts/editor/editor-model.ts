@@ -1,3 +1,4 @@
+import { model as defaultModel } from '@/ts/data/default-model'
 import { debounce } from '@/ts/utils/debounce'
 import { modelParser } from '@/ts/wfc/model-parser'
 import { Vector3 } from 'three'
@@ -56,15 +57,23 @@ export class EditorModel extends EventTarget {
 		localStorage.setItem('editor-model-data', JSON.stringify(this.model))
 	}
 
-	private load() {
-		const data = localStorage.getItem('editor-model-data')
+	public loadDefault() {
+		this.loadaData(defaultModel)
+	}
+
+	private loadaData(data: any) {
 		if (data) {
-			this.model = JSON.parse(data)
+			this.model = data
 			this.model.forEach((el) => {
 				el.position = new Vector3(el.position.x, el.position.y, el.position.z)
 			})
 			this.dispatchEvent(this.event)
 			modelParser.parse(this)
 		}
+	}
+
+	private load() {
+		const data = JSON.parse(localStorage.getItem('editor-model-data'))
+		this.loadaData(data)
 	}
 }

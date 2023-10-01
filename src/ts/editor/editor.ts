@@ -3,6 +3,7 @@ import { Graphics } from '@/ts/graphics/graphics'
 import { loader } from '@/ts/graphics/Loader'
 import {
 	BoxGeometry,
+	DoubleSide,
 	EdgesGeometry,
 	GridHelper,
 	Group,
@@ -38,7 +39,7 @@ export class Editor extends EventTarget {
 
 	private activeLayer = 0
 
-	private model = new EditorModel()
+	public model = new EditorModel()
 
 	private gridHelper: GridHelper
 
@@ -46,10 +47,12 @@ export class Editor extends EventTarget {
 		color: 0x666666,
 		transparent: true,
 		opacity: 0.8,
+		side: DoubleSide,
 	})
 
 	private static readonly ACTIVE_MATERIAL = new MeshStandardMaterial({
 		color: 0xffffff,
+		side: DoubleSide,
 	})
 
 	public constructor(private readonly graphics: Graphics) {

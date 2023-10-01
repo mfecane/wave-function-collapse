@@ -5,8 +5,6 @@ import { SquareGrid } from '@/ts/wfc/grid/square-grid.js'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance.js'
 import { Vector3 } from 'three'
 
-const GUARD_LIMIT = 5000
-
 interface HistoryItem {
 	instancePos: {
 		x: number
@@ -24,6 +22,8 @@ export interface SolverEventPayload {
 }
 
 export class Solver extends EventTarget {
+	private static readonly GUARD_LIMIT = 10000
+
 	public iterations = 0
 	public static checks = 0
 	private runFlag = false
@@ -56,7 +56,7 @@ export class Solver extends EventTarget {
 				break
 			}
 
-			if (guard++ > GUARD_LIMIT) {
+			if (guard++ > Solver.GUARD_LIMIT) {
 				throw 'Guard overflow'
 			}
 
@@ -93,10 +93,6 @@ export class Solver extends EventTarget {
 				this.checkHistory(currentHistoryItem, index)
 				continue
 			}
-
-			console.groupCollapsed('this.set.instances[1][1][1].z', this.set.instances[1][1][1].z)
-			console.trace()
-			console.groupEnd()
 
 			// propagation is ok move to next history step
 			const inst2 = this.getNextElement()
@@ -196,7 +192,7 @@ export class Solver extends EventTarget {
 		let element: SquareGridInstance
 		let guard = 0
 		while ((element = this.set.getNextDirtyElement())) {
-			if (guard++ > GUARD_LIMIT) {
+			if (guard++ > Solver.GUARD_LIMIT) {
 				throw 'Guard overflow'
 			}
 			this.propagateElement(element)

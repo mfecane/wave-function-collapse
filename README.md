@@ -6,4 +6,7 @@ to play with the solver
 
 ## TODO
 
--   make 3d again
+-   implement floor asap
+-   implement radial symmetry
+-   add weight to model
+-   nicer GUI, logo

@@ -32,6 +32,9 @@ export class SquareGridRenderer {
 		this.graphics.scene.add(this.group)
 	}
 
+	/**
+	 * @todo debounce
+	 */
 	public async tryRender(set: SquareGrid) {
 		if (this.rendering) {
 			return

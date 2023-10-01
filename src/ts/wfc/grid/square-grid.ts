@@ -8,8 +8,8 @@ type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverA
 ]
 
 export class SquareGrid {
-	public static readonly MAX_HORIZONTAL = 9
-	public static readonly MAX_VERTICAL = 5
+	public static readonly MAX_HORIZONTAL = 13
+	public static readonly MAX_VERTICAL = 10
 
 	public instances: (SquareGridInstance | null)[][][] = []
 
@@ -174,15 +174,10 @@ export class SquareGrid {
 	}
 
 	public cloneState(): SquareGridInstance[][][] {
-		// console.log('set.instances[1][1][1].z', this.instances[1][1][1].z)
-		const a = this.instances.map((el1) => el1.map((el2) => el2.map((el3) => el3.clone())))
-		// console.log('set.instances[1][1][1].z', this.instances[1][1][1].z)
-		return a
+		return this.instances.map((el1) => el1.map((el2) => el2.map((el3) => el3.clone())))
 	}
 
 	public replaceState(instances: SquareGridInstance[][][]) {
-		console.log('set.instances[1][1][1].z', this.instances[1][1][1].z)
 		this.instances = instances.map((el1) => el1.map((el2) => el2.map((el3) => el3.clone())))
-		console.log('set.instances[1][1][1].z', this.instances[1][1][1].z)
 	}
 }
