@@ -1,9 +1,36 @@
-import { build } from './3d/cube-collapser'
-import { setup } from './renderer/graphics'
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import PrimeVue from 'primevue/config'
 
-//! Remember: this file should be lean
+import App from '@/components/App.vue'
+import Generate from '@/components/Generate.vue'
+import Editor from '@/components/Editor.vue'
 
-window.addEventListener('load', () => {
-	setup()
-	build()
+import '@/scss/index.scss'
+import 'primevue/resources/themes/lara-light-indigo/theme.css'
+
+const routes = [
+	{
+		path: '/',
+		component: Editor,
+	},
+	{
+		path: '/editor',
+		component: Editor,
+	},
+	{ path: '/generate', component: Generate },
+]
+
+const router = createRouter({
+	history: createWebHashHistory(),
+	routes,
 })
+
+const pinia = createPinia()
+const app = createApp(App)
+
+app.use(router)
+app.use(pinia)
+app.use(PrimeVue)
+app.mount('#app')
