@@ -1,17 +1,19 @@
 <template>
 	<router-link to="/editor" class="btn editor-button">Editor</router-link>
 	<div class="canvas" ref="canvas"></div>
+	<generate-menu />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import GenerateMenu from '@/components/GenerateMenu.vue'
 
-import { build, stop } from '@/ts/wfc/collapse'
+import { onMounted, onBeforeUnmount } from 'vue'
+import { useGenerator } from '@/ts/hooks/useGenerator'
 
-const canvas = ref<HTMLDivElement>()
+const { canvas, build, stop } = useGenerator()
 
 onMounted(() => {
-	build(canvas.value)
+	build()
 })
 
 onBeforeUnmount(() => {

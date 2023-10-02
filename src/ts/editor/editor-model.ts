@@ -1,6 +1,6 @@
 import { model as defaultModel } from '@/ts/data/default-model'
-import { debounce } from '@/ts/utils/debounce'
 import { modelParser } from '@/ts/wfc/model-parser'
+import { debounce } from 'lodash'
 import { Vector3 } from 'three'
 
 export interface Cell {
@@ -21,13 +21,13 @@ export class EditorModel extends EventTarget {
 		window.setTimeout(this.load.bind(this), 100)
 	}
 
-	public addItem(position: Vector3, src: string) {
+	public addItem(position: Vector3, src: string, rotation: number = 0) {
 		const cell = this.getCell(position)
 		if (!cell) {
 			this.model.push({
 				position,
 				src,
-				rotation: 0,
+				rotation,
 			})
 		} else {
 			cell.src = src

@@ -10,6 +10,7 @@ import { SelectByElementBelow } from '@/ts/wfc/algorythm/SelectByElementBelow'
 let solver: Algorythm
 let set: SquareGrid
 let renderer: SquareGridRenderer
+let graphics: Graphics
 
 function onFinished() {
 	if (!set.validataSolved()) {
@@ -20,7 +21,7 @@ function onFinished() {
 }
 
 export async function build(container: HTMLDivElement) {
-	const graphics = new Graphics(container)
+	graphics = new Graphics(container)
 	set = new SquareGrid()
 	solver = new Algorythm(set, new SelectByElementBelow())
 	renderer = new SquareGridRenderer(graphics)
@@ -36,4 +37,5 @@ export async function build(container: HTMLDivElement) {
 
 export function stop() {
 	solver.stop()
+	graphics.destroy()
 }

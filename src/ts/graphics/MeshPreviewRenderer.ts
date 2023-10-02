@@ -1,5 +1,13 @@
 import { loader } from '@/ts/graphics/Loader'
-import { Group, PerspectiveCamera, Scene, SpotLight, Vector3, WebGLRenderer } from 'three'
+import {
+	DirectionalLight,
+	Group,
+	PerspectiveCamera,
+	Scene,
+	SpotLight,
+	Vector3,
+	WebGLRenderer,
+} from 'three'
 
 class MeshPreviewRenderer {
 	private static readonly WIDTH = 512
@@ -19,17 +27,17 @@ class MeshPreviewRenderer {
 		this.renderer.setSize(MeshPreviewRenderer.WIDTH, MeshPreviewRenderer.HEIGHT)
 		this.group.name = 'Container'
 
-		const pointLight = new SpotLight(0xffffff, 1)
-		pointLight.position.set(20, 50, 20)
+		const pointLight = new DirectionalLight(0xffffff, 1)
+		pointLight.position.set(20, 30, -10)
 		pointLight.lookAt(0, 0, 0)
 		this.scene.add(pointLight)
 
-		const pointLight1 = new SpotLight(0xcccccc, 1)
-		pointLight1.position.set(-20, 50, -20)
+		const pointLight1 = new DirectionalLight(0xcccccc, 1)
+		pointLight1.position.set(-20, 50, 40)
 		pointLight1.lookAt(0, 0, 0)
 		this.scene.add(pointLight1)
 
-		this.camera.position.copy(new Vector3(2, 10, 8))
+		this.camera.position.copy(new Vector3(-2, 3, 6))
 		this.camera.lookAt(new Vector3(0, 0, 0))
 
 		this.scene.add(this.group)

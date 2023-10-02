@@ -1,11 +1,17 @@
 <template>
 	<editor-layout>
-		<div class="canvas" ref="canvas"></div>
+		<div class="canvas" ref="canvas">
+			<EditorOverlay />
+			<MeshMenu />
+		</div>
 	</editor-layout>
 </template>
 
 <script setup lang="ts">
 import EditorLayout from '@/components/EditorLayout.vue'
+import EditorOverlay from '@/components/EditorOverlay.vue'
+import MeshMenu from '@/components/MeshMenu.vue'
+
 import { useEditor } from '@/ts/hooks/useEditor'
 
 import { ref, onMounted } from 'vue'

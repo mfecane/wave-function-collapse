@@ -4,7 +4,7 @@
 @import "common/_fonts.scss";
 
 body {
-	font-family: Poppins;
+	font-family: Montserrat;
 	background: var(--dark-bg);
 }
 
@@ -14,21 +14,10 @@ body {
 }
 
 .btn {
-	border-radius: 2px;
+	border-radius: 3px;
 	background: var(--accent);
 	min-width: 120px;
 	padding: 8px 20px;
 	text-align: center;
 	color: white;
-}
-
-.rotate__button {
-	width: 64px;
-	height: 64px;
-	background: center center / 70% url(/svg/rotate.svg) no-repeat, white;
-	border-radius: 32px;
-
-	&.hidden {
-		display: none;
-	}
 }

@@ -5,30 +5,46 @@ import { Vector2 } from 'three'
 
 export class OverlayUI extends EventTarget {
 	private readonly container: HTMLCanvasElement
-	private readonly rotateButton: HTMLButtonElement
-	private readonly event = new Event('rotate_clicked')
+	private readonly panel: HTMLDivElement
 	private readonly screenSpacePositionedElementController: OverlayElementController
 
 	public constructor(private readonly graphics: Graphics, private readonly editor: Editor) {
 		super()
 		this.screenSpacePositionedElementController = new OverlayElementController(this.graphics)
 		this.container = document.querySelector('.canvas')
-		this.rotateButton = document.createElement('button')
-		this.rotateButton.classList.add('rotate__button')
-		this.rotateButton.style.position = `absolute`
-		this.container.appendChild(this.rotateButton)
-		this.rotateButton.addEventListener('click', () => this.dispatchEvent(this.event))
-		this.screenSpacePositionedElementController.create(
-			this.editor.selectMesh,
-			this.rotateButton as unknown as HTMLDivElement,
-			new Vector2(40, 40)
-		)
+
+		this.panel = this.setupPanel()
+
 		this.graphics.addEventListener('camera_rotated', () =>
 			this.screenSpacePositionedElementController.update()
 		)
+
 		this.editor.addEventListener('selected', (event: CustomEvent<Payload>) => {
 			this.screenSpacePositionedElementController.update()
-			this.rotateButton.classList.toggle('hidden', !event.detail)
+			this.panel.classList.toggle('hidden', !event.detail)
 		})
+	}
+
+	private setupPanel() {
+		const panel = document.querySelector('#mesh_menu_panel') as HTMLDivElement
+
+		this.screenSpacePositionedElementController.create(
+			this.editor.selectMesh,
+			panel as unknown as HTMLDivElement,
+			new Vector2(0, 60)
+		)
+
+		const rotateButton = document.querySelector(
+			'#mesh_menu_panel .rotate__button'
+		) as HTMLDivElement
+
+		const deleteButton = document.querySelector(
+			'#mesh_menu_panel .delete__button'
+		) as HTMLDivElement
+
+		rotateButton.addEventListener('click', () => this.editor.rotateCell())
+		deleteButton.addEventListener('click', () => this.editor.deleteCell())
+
+		return panel
 	}
 }
