@@ -1,11 +1,11 @@
 import { TemplateMask } from '../template-mask.js'
 import { pause } from '../../utils/utils.js'
-import { modelParser } from '@/ts/wfc/model-parser.js'
+import { templates } from '@/ts/wfc/model-parser.js'
 import { SquareGrid } from '@/ts/wfc/grid/square-grid.js'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance.js'
 import { Vector3 } from 'three'
 import { ElementSelectorStrategy } from '@/ts/wfc/algorythm/ElementSelectorStrategy.js'
-import { debounce, throttle } from 'lodash'
+import { throttle } from 'lodash'
 
 interface HistoryItem {
 	instancePos: {
@@ -21,13 +21,13 @@ interface HistoryItem {
 export interface SolverEventPayload {
 	current?: Vector3
 	set: SquareGrid
+	iterations: number
 }
 
 export class Algorythm extends EventTarget {
 	private static readonly GUARD_LIMIT = 10000
 
 	public iterations = 0
-	public static checks = 0
 	private runFlag = false
 
 	private history: HistoryItem[] = []
@@ -132,7 +132,6 @@ export class Algorythm extends EventTarget {
 	}
 
 	private _notify() {
-		console.log('_notify')
 		const currentHistoryItem = this.history[this.history.length - 1]
 		const event = new CustomEvent<SolverEventPayload>('element_collapsed', {
 			detail: {
@@ -142,6 +141,7 @@ export class Algorythm extends EventTarget {
 					currentHistoryItem.instancePos.z
 				),
 				set: this.set,
+				iterations: this.iterations,
 			},
 		})
 		this.dispatchEvent(event)
@@ -231,7 +231,6 @@ export class Algorythm extends EventTarget {
 	) {
 		const oldEnthropy = target.enthropy
 		// target
-		const templates = modelParser.getTemplates()
 		for (let i = 0; i < templates.length; i++) {
 			let result = false
 			if (target.mask.getAt(i) === 1) {
@@ -244,7 +243,7 @@ export class Algorythm extends EventTarget {
 						// TODO please keep in mind adjacencyInfo
 						result ||= sourceTemplateInfo.getAt(i) === 1
 					}
-					Algorythm.checks++
+					this.iterations++
 				}
 			}
 			if (!result) {

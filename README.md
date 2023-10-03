@@ -15,6 +15,7 @@ to play with the solver
 -   seeded random
 -   environment, shaders, improve art
 -   add voxel ignored by parser
+-   can editor can be refactored to be more general
 
 # Check
 

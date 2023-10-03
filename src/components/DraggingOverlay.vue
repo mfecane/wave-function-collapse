@@ -31,7 +31,7 @@ const { selectedObject } = useEditor()
 	background: #eeeeee;
 	padding: 2px 4px;
 	border-radius: 2px;
-	border: 1px solid #cccccc;
+	box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .draggin-overlay__container.hidden {

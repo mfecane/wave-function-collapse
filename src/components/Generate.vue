@@ -10,10 +10,10 @@ import GenerateMenu from '@/components/GenerateMenu.vue'
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useGenerator } from '@/ts/hooks/useGenerator'
 
-const { canvas, build, stop } = useGenerator()
+const { canvas, generate, stop } = useGenerator()
 
 onMounted(() => {
-	build()
+	generate()
 })
 
 onBeforeUnmount(() => {

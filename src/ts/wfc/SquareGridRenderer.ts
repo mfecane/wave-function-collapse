@@ -9,7 +9,7 @@ import {
 } from 'three'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { Graphics } from '@/ts/graphics/graphics'
-import { modelParser } from '@/ts/wfc/model-parser'
+import { modelParser, templates } from '@/ts/wfc/model-parser'
 import { SquareGrid } from '@/ts/wfc/grid/square-grid'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance'
 import { SolverEventPayload } from '@/ts/wfc/algorythm/algorithm'
@@ -78,7 +78,7 @@ export class SquareGridRenderer {
 
 	private renderUnresolved(instance: SquareGridInstance) {
 		// todo refactor this
-		const templatesLength = modelParser.getTemplates().length
+		const templatesLength = templates.length
 		const index = Math.floor((instance.enthropy / templatesLength) * 5)
 		const mesh = new Mesh(this.squareGeometry, this.enthropyMaterials[index])
 		mesh.position.copy(this.convertPosition(instance.x, instance.y, instance.z))
@@ -97,7 +97,7 @@ export class SquareGridRenderer {
 	}
 
 	private async addMesh(instance: SquareGridInstance) {
-		const state = modelParser.getTemplates()[instance.tryGetOnlyState()]
+		const state = templates[instance.tryGetOnlyState()]
 		if (!state || state.src === 'void' || state.src === 'ground') {
 			return
 		}

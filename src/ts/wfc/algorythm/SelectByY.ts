@@ -1,12 +1,8 @@
 import { ElementSelectorStrategy } from '@/ts/wfc/algorythm/ElementSelectorStrategy'
 import { SquareGrid } from '@/ts/wfc/grid/square-grid'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance'
-import { modelParser } from '@/ts/wfc/model-parser'
 
 export class SelectByY implements ElementSelectorStrategy {
-	private readonly templatesLength = modelParser.getTemplates().length
-	private readonly maxY = SquareGrid.MAX_VERTICAL
-
 	private static readonly ENTHROPY_THRESHOLD = 1
 
 	public select(squareGrid: SquareGrid): SquareGridInstance | null {

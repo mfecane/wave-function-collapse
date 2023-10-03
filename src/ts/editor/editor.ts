@@ -82,9 +82,11 @@ export class Editor extends EventTarget {
 
 		const render = this._render.bind(this)
 		this.model.addEventListener('model_updated', render)
-		this.addEventListener('layer_changed', render)
+		this.model.loadLocal()
 
 		this.mouseEventController = new MouseEventController(this)
+
+		window.setTimeout(render, 0)
 
 		// @ts-ignore
 		window.Editor = this
@@ -120,13 +122,6 @@ export class Editor extends EventTarget {
 
 		const { x, y, z } = cell.position
 
-		// if (y !== this.activeLayer) {
-		// 	//@ts-ignore
-		// 	mesh.children[0].material = Editor.DIMMED_MATERIAL
-		// } else {
-		// 	//@ts-ignore
-		// 	mesh.children[0].material = Editor.ACTIVE_MATERIAL
-		// }
 		const position = new Vector3(
 			x * this.GRID_SIZE + this.GRID_SIZE / 2,
 			y * this.GRID_SIZE + this.GRID_SIZE / 2,

@@ -2,12 +2,8 @@ import { randomElement } from '@/ts/utils/utils'
 import { ElementSelectorStrategy } from '@/ts/wfc/algorythm/ElementSelectorStrategy'
 import { SquareGrid } from '@/ts/wfc/grid/square-grid'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance'
-import { modelParser } from '@/ts/wfc/model-parser'
 
 export class SelectByEnthropy implements ElementSelectorStrategy {
-	private readonly templatesLength = modelParser.getTemplates().length
-	private readonly maxY = SquareGrid.MAX_VERTICAL
-
 	public select(squareGrid: SquareGrid): SquareGridInstance | null {
 		let min = Infinity
 		let elements: SquareGridInstance[] = []

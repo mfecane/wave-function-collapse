@@ -164,10 +164,11 @@ export class Graphics extends EventTarget {
 		)
 		plane.rotateX(-Math.PI / 2)
 		plane.receiveShadow = true
+		plane.position.y = -0.01
 		this.scene.add(plane)
 
-		this.scene.background = new Color(0x999999)
-		this.scene.fog = new Fog(0x999999, 100, 300)
+		this.scene.background = new Color(0xccccccccc)
+		this.scene.fog = new Fog(0xccccccccc, 100, 300)
 	}
 
 	public destroy() {

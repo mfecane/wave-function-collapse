@@ -16,9 +16,6 @@ export class EditorModel extends EventTarget {
 	public constructor() {
 		super()
 		this.addEventListener('model_updated', debounce(this.serialize.bind(this), 1000))
-		// TODO remove this dumb hack
-		// event is dispatched before we added event listener
-		window.setTimeout(this.load.bind(this), 100)
 	}
 
 	public addItem(position: Vector3, src: string, rotation: number = 0) {
@@ -61,6 +58,11 @@ export class EditorModel extends EventTarget {
 		this.loadaData(defaultModel)
 	}
 
+	public loadLocal() {
+		const data = JSON.parse(localStorage.getItem('editor-model-data'))
+		this.loadaData(data)
+	}
+
 	private loadaData(data: any) {
 		if (data) {
 			this.model = data
@@ -70,10 +72,5 @@ export class EditorModel extends EventTarget {
 			this.dispatchEvent(this.event)
 			modelParser.parse(this)
 		}
-	}
-
-	private load() {
-		const data = JSON.parse(localStorage.getItem('editor-model-data'))
-		this.loadaData(data)
 	}
 }

@@ -4,8 +4,14 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 class Loader {
 	private objLoader: OBJLoader = new OBJLoader()
 
+	private cache = new Map<string, Group>()
+
 	public async loadMesh(url: string): Promise<Group | null> {
-		let mesh: Group
+		let mesh: Group | undefined
+		mesh = this.cache.get(url)
+		if (mesh) {
+			return mesh.clone()
+		}
 
 		try {
 			mesh = await new Promise<Group>((resolve, reject) =>
@@ -22,6 +28,7 @@ class Loader {
 			return null
 		}
 
+		this.cache.set(url, mesh.clone())
 		return mesh
 	}
 }

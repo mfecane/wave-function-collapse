@@ -1,5 +1,5 @@
 import { assertBoolean, randomElement } from '@/ts/utils/utils'
-import { modelParser, TemplateData } from '@/ts/wfc/model-parser'
+import { TemplateData, templates } from '@/ts/wfc/model-parser'
 import { TemplateMask } from '@/ts/wfc/template-mask'
 
 export class SquareGridInstance {
@@ -12,13 +12,12 @@ export class SquareGridInstance {
 
 	public enthropy: number = 0
 	public mask: TemplateMask
-	private templates: TemplateData[] = []
+	private templates: TemplateData[] = templates
 
 	public constructor() {
-		this.mask = new TemplateMask(modelParser.getTemplates().length)
+		this.mask = new TemplateMask(templates.length)
 		this.mask.fillOnes()
 		this.enthropy = this.mask.countOnes()
-		this.templates = modelParser.getTemplates()
 	}
 
 	private getNonZeroIndices(): number[] {
@@ -38,7 +37,7 @@ export class SquareGridInstance {
 		assertBoolean(index < this.templates.length)
 		assertBoolean(this.mask.getAt(index) === 1)
 
-		this.mask = new TemplateMask(modelParser.getTemplates().length)
+		this.mask = new TemplateMask(this.templates.length)
 		this.mask.setAt(index, 1)
 		this.enthropy = this.mask.countOnes()
 	}

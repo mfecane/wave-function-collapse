@@ -1,12 +1,11 @@
 import { ElementSelectorStrategy } from '@/ts/wfc/algorythm/ElementSelectorStrategy'
 import { SquareGrid } from '@/ts/wfc/grid/square-grid'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance'
-import { modelParser } from '@/ts/wfc/model-parser'
+import { templates } from '@/ts/wfc/model-parser'
 import { sortBy, sumBy } from 'lodash'
 
 export class SelectByCost implements ElementSelectorStrategy {
-	private readonly templatesLength = modelParser.getTemplates().length
-	private readonly maxY = SquareGrid.MAX_VERTICAL
+	private readonly templatesLength = templates.length
 
 	public select(squareGrid: SquareGrid): SquareGridInstance | null {
 		let elements: { instance: SquareGridInstance; cost: number }[] = []

@@ -1,5 +1,5 @@
 import { assertBoolean } from '@/ts/utils/utils'
-import { AdjacencyKey, modelParser } from '@/ts/wfc/model-parser'
+import { AdjacencyKey, templates } from '@/ts/wfc/model-parser'
 import { SquareGridInstance } from '@/ts/wfc/grid/square-grid-instance'
 
 type AdjacentElementStupidUtilityTypeBecauseImTiredTypingTheSameShitOverAndOverAgain = [
@@ -90,9 +90,7 @@ export class SquareGrid {
 			for (let j = 0; j < this.instances[i].length; ++j) {
 				const instance = this.instances[i][j][z]
 				assertBoolean(instance.enthropy <= 1)
-				result += `\t${
-					modelParser.getTemplates()[instance.tryGetOnlyState()]?.id ?? 'dead'
-				}`
+				result += `\t${templates[instance.tryGetOnlyState()]?.id ?? 'dead'}`
 			}
 			result += '\n'
 		}

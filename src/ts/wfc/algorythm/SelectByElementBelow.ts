@@ -14,6 +14,9 @@ export class SelectByElementBelow implements ElementSelectorStrategy {
 			if (!this.checkElementBelow(el, squareGrid)) {
 				return
 			}
+			// if (!this.checkAllElementsBelow(el, squareGrid)) {
+			// 	return
+			// }
 			if (el.enthropy < min) {
 				min = el.enthropy
 				elements = [el]
@@ -38,5 +41,15 @@ export class SelectByElementBelow implements ElementSelectorStrategy {
 		const element = grid.tryGetElementAt(instance.x, instance.y - 1, instance.z)
 		if (!element) return true
 		return element.enthropy === 1
+	}
+
+	private checkAllElementsBelow(instance: SquareGridInstance, grid: SquareGrid): boolean {
+		let result = true
+		for (let i = instance.y; i >= 0; --i) {
+			const element = grid.tryGetElementAt(instance.x, instance.y - 1, instance.z)
+			if (!element) return true
+			result = result && element.enthropy === 1
+		}
+		return result
 	}
 }

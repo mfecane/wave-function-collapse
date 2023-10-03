@@ -1,7 +1,7 @@
 <template>
 	<div class="container">
 		<div class="label">iterations</div>
-		<div class="counter">20000000</div>
+		<div class="counter">{{ iterations }}</div>
 		<button class="btn" @click="onClick">Generate</button>
 	</div>
 </template>
@@ -9,11 +9,11 @@
 <script setup lang="ts">
 import { useGenerator } from '@/ts/hooks/useGenerator'
 
-const { build, stop } = useGenerator()
+const { iterations, generate, stop } = useGenerator()
 
 function onClick() {
 	stop()
-	build()
+	generate()
 }
 </script>
 
@@ -37,6 +37,6 @@ function onClick() {
 	right: 20px;
 	padding: 16px;
 	border-radius: 12px;
-	align-items: end;
+	align-items: flex-end;
 }
 </style>

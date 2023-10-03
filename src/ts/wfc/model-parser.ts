@@ -24,6 +24,8 @@ export interface TemplateData {
 	[AdjacencyKey.nz]?: TemplateMask
 }
 
+export let templates: TemplateData[] = []
+
 /**
  * @description creates array of templates to feed to the algorythm by parsing grid created by the user
  * The general idea is to parse non-void cells and find connections between theirs templates. Add corresponding
@@ -33,7 +35,7 @@ export interface TemplateData {
  * @todo and also with any other empty connection side
  * @idea try to analyze template mesh to find connections with no vertices to automatically mate it with the void
  */
-export class ModelParser {
+class ModelParser {
 	public iterations = 0
 	private readonly templates: TemplateData[] = []
 
@@ -67,6 +69,8 @@ export class ModelParser {
 
 		console.log('parser::iterations', this.iterations)
 		console.log('parser::templates', this.templates)
+
+		templates = this.templates
 	}
 
 	private setupDefaultConstraints() {
@@ -83,10 +87,6 @@ export class ModelParser {
 		}
 		this.templates[0].ny.on(1)
 		this.templates[1].py.on(0)
-	}
-
-	public getTemplates() {
-		return this.templates
 	}
 
 	private getSrcTemplates(): TemplateData[] {
